@@ -3,158 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>এলিগ্যান্ট ভাড়ার রশিদ</title>
+    <title>প্রিমিয়াম ভাড়ার রশিদ</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --primary: #0f172a; --accent: #3b82f6; --success: #22c55e; --danger: #ef4444; --card-bg: #ffffff; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; display: flex; flex-direction: column; align-items: center; padding: 20px; color: var(--primary); }
+        :root { --main: #1a2a6c; --accent: #f2a900; --text: #333; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #e9ecef; display: flex; flex-direction: column; align-items: center; padding: 15px; }
         
-        /* মেইন কার্ড ডিজাইন */
-        .receipt-card { 
-            width: 100%; max-width: 440px; background: var(--card-bg); padding: 35px; 
-            border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-            position: relative; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);
+        .receipt-container { 
+            width: 100%; max-width: 450px; background: #fff; padding: 30px; 
+            border-radius: 5px; box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            border-top: 15px solid var(--main); position: relative;
         }
 
-        /* স্টাইলিশ টপ ডিজাইন */
-        .receipt-card::before {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 8px;
-            background: linear-gradient(90deg, var(--accent), #a855f7);
+        .receipt-container::after {
+            content: ""; position: absolute; top: 0; right: 20px;
+            width: 40px; height: 60px; background: var(--main); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);
         }
 
         .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { margin: 0; font-size: 26px; font-weight: 800; color: var(--primary); text-transform: uppercase; }
-        .header p { margin: 5px 0; color: #64748b; font-size: 13px; letter-spacing: 1px; }
+        .header h1 { margin: 0; font-size: 28px; color: var(--main); letter-spacing: 2px; }
+        .header p { margin: 5px 0; color: #777; font-size: 14px; border-bottom: 1px solid #eee; display: inline-block; padding-bottom: 5px; }
 
-        .user-info { margin-bottom: 25px; background: #f8fafc; padding: 15px; border-radius: 12px; }
-        .info-row { display: flex; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
-        .info-row:last-child { border: none; }
-        .info-row label { width: 100px; font-weight: 600; font-size: 13px; color: #475569; }
-        input { border: none; outline: none; width: 100%; font-size: 15px; background: transparent; color: var(--primary); font-weight: 500; }
+        .info-box { margin-bottom: 25px; font-size: 15px; }
+        .info-box div { display: flex; margin-bottom: 10px; border-bottom: 1px solid #f9f9f9; padding-bottom: 5px; }
+        .info-box label { font-weight: bold; width: 110px; color: #555; }
+        input { border: none; outline: none; width: 100%; font-family: inherit; font-size: 15px; color: var(--text); background: transparent; }
 
-        /* টেবিল স্টাইল */
-        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-        th { text-align: left; padding: 10px; font-size: 12px; color: #94a3b8; text-transform: uppercase; }
-        .item-row td { background: #fff; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; padding: 12px; }
-        .item-row td:first-child { border-left: 1px solid #f1f5f9; border-radius: 12px 0 0 12px; font-weight: 500; }
-        .item-row td:last-child { border-right: 1px solid #f1f5f9; border-radius: 0 12px 12px 0; text-align: right; }
-        
-        .amt-input { text-align: right; font-weight: 700; color: var(--primary); width: 100px; font-size: 16px; }
+        /* টেবিল ডিজাইন */
+        table { width: 100%; border-collapse: collapse; border: 1.5px solid var(--main); }
+        th { background: var(--main); color: #fff; padding: 12px; font-size: 15px; text-align: left; }
+        td { padding: 12px; border: 1px solid #eee; font-size: 15px; }
+        .amt-col { text-align: right; font-weight: bold; width: 100px; }
 
-        /* পপআপ স্টাইল */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-box { background: #fff; padding: 25px; border-radius: 20px; width: 320px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
-        .modal-box h3 { margin-bottom: 20px; font-size: 18px; text-align: center; }
-        .field { margin-bottom: 15px; }
-        .field label { display: block; font-size: 12px; margin-bottom: 5px; color: #64748b; }
-        .field input { border: 1.5px solid #e2e8f0; padding: 10px; border-radius: 10px; width: 93%; background: #f8fafc; }
+        /* পপ-আপ ডিজাইন */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-card { background: #fff; padding: 25px; border-radius: 10px; width: 300px; }
+        .modal-card input { border: 1px solid #ddd; padding: 10px; border-radius: 5px; margin: 8px 0; width: 93%; background: #fff; }
+        .btn-save { background: var(--main); color: #fff; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; }
 
-        .total-section { 
-            margin-top: 25px; padding: 20px; background: var(--primary); 
-            border-radius: 16px; color: #fff; display: flex; justify-content: space-between; align-items: center;
+        .total-box { 
+            margin-top: 20px; padding: 20px; background: #f8f9fa; border-left: 6px solid var(--main);
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .total-section span { opacity: 0.8; font-size: 14px; }
-        .total-section h2 { margin: 0; font-size: 26px; font-weight: 700; color: #fff; }
+        .total-box h2 { margin: 0; font-size: 22px; color: var(--main); }
 
-        /* বাটন স্টাইল */
-        .actions { width: 100%; max-width: 440px; margin-top: 25px; display: flex; gap: 12px; }
-        .btn { flex: 1; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-dl { background: #fff; color: var(--primary); border: 1px solid #e2e8f0; }
-        .btn-sh { background: var(--accent); color: #fff; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); }
-        .btn:active { transform: scale(0.96); }
+        .btn-group { width: 100%; max-width: 450px; margin-top: 20px; display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 15px; border: none; border-radius: 5px; font-weight: bold; color: #fff; cursor: pointer; transition: 0.3s; }
+        .btn-dl { background: #333; }
+        .btn-sh { background: #25D366; }
         .hide-row { display: none !important; }
     </style>
 </head>
 <body>
 
-<div class="receipt-card" id="capture">
+<div class="receipt-container" id="receipt">
     <div class="header">
         <h1>ভাড়ার রশিদ</h1>
-        <p>RENTAL PAYMENT RECEIPT</p>
+        <p>অফিশিয়াল পেমেন্ট মেমো</p>
     </div>
 
-    <div class="user-info">
-        <div class="info-row"><label>তারিখ</label> <input type="text" placeholder="১১ ফেব, ২০২৬"></div>
-        <div class="info-row"><label>বাড়িয়ালা</label> <input type="text" placeholder="মালিকের নাম"></div>
-        <div class="info-row"><label>ভাড়াটিয়া</label> <input type="text" placeholder="ভাড়াটিয়ার নাম"></div>
+    <div class="info-box">
+        <div><label>তারিখঃ</label> <input type="text" placeholder="১১/০২/২০২৬"></div>
+        <div><label>বাড়িয়ালাঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
+        <div><label>ভাড়াটিয়াঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
     </div>
 
     <table>
         <thead>
-            <tr><th>বিবরণ</th><th style="text-align: right;">পরিমাণ</th></tr>
-        </thead>
-        <tbody id="list">
-            <tr class="item-row"><td>মাসিক ভাড়া</td><td><input type="number" class="fee" oninput="calc()" value="0"></td></tr>
-            <tr class="item-row">
-                <td>বিদ্যুৎ বিল <small onclick="showPop()" style="color: var(--accent); cursor: pointer; display: block; font-size: 10px; font-weight: 600;">(ইউনিক ক্যালকুলেটর)</small></td>
-                <td><input type="number" id="ebill" class="fee" oninput="calc()" value="0"></td>
+            <tr>
+                <th>বিবরণ</th>
+                <th class="amt-col">টাকা (৳)</th>
             </tr>
-            <tr class="item-row"><td>WIFI বিল</td><td><input type="number" class="fee" oninput="calc()" value="0"></td></tr>
-            <tr class="item-row"><td>বকেয়া ভাড়া</td><td><input type="number" class="fee" oninput="calc()" value="0"></td></tr>
-            <tr class="item-row"><td>হাওলাত</td><td><input type="number" class="fee" oninput="calc()" value="0"></td></tr>
-            <tr class="item-row"><td>অন্যান্য</td><td><input type="number" class="fee" oninput="calc()" value="0"></td></tr>
-            <tr class="item-row" style="color: var(--danger);"><td>(-) জমা</td><td><input type="number" id="joma" class="minus" oninput="calc()" value="0" style="color: var(--danger);"></td></tr>
+        </thead>
+        <tbody id="items-table">
+            <tr class="item-row">
+                <td>মাসিক ভাড়া</td>
+                <td class="amt-col"><input type="number" class="fee" oninput="calc()" value="0" style="text-align: right;"></td>
+            </tr>
+            <tr class="item-row">
+                <td>বিদ্যুৎ বিল <small onclick="openModal()" style="color: blue; cursor: pointer; display: block; font-size: 10px;">(ক্যালকুলেটর)</small></td>
+                <td class="amt-col"><input type="number" id="elec-val" class="fee" oninput="calc()" value="0" style="text-align: right;"></td>
+            </tr>
+            <tr class="item-row">
+                <td>WIFI বিল</td>
+                <td class="amt-col"><input type="number" class="fee" oninput="calc()" value="0" style="text-align: right;"></td>
+            </tr>
+            <tr class="item-row">
+                <td>বকেয়া ভাড়া</td>
+                <td class="amt-col"><input type="number" class="fee" oninput="calc()" value="0" style="text-align: right;"></td>
+            </tr>
+            <tr class="item-row">
+                <td>হাওলাত</td>
+                <td class="amt-col"><input type="number" class="fee" oninput="calc()" value="0" style="text-align: right;"></td>
+            </tr>
+            <tr class="item-row">
+                <td>অন্যান্য</td>
+                <td class="amt-col"><input type="number" class="fee" oninput="calc()" value="0" style="text-align: right;"></td>
+            </tr>
+            <tr class="item-row" style="background: #fff5f5;">
+                <td style="color: #d32f2f; font-weight: bold;">(-) জমা</td>
+                <td class="amt-col"><input type="number" id="joma" class="minus" oninput="calc()" value="0" style="text-align: right; color: #d32f2f;"></td>
+            </tr>
         </tbody>
     </table>
 
-    <div class="total-section">
-        <span>মোট প্রদেয় টাকা</span>
-        <h2 id="grand">0 ৳</h2>
+    <div class="total-box">
+        <span>মোট পাওনাঃ</span>
+        <h2 id="total-text">0 ৳</h2>
     </div>
 </div>
 
-<div class="modal" id="pop">
-    <div class="modal-box">
-        <h3>বিদ্যুৎ ইউনিট হিসাব</h3>
-        <div class="field"><label>বর্তমান রিডিং</label><input type="number" id="c" oninput="mCalc()"></div>
-        <div class="field"><label>পূর্বের রিডিং</label><input type="number" id="p" oninput="mCalc()"></div>
-        <div class="field"><label>ইউনিট রেট (৳)</label><input type="number" id="r" value="10" oninput="mCalc()"></div>
-        <div style="background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
-            <span style="font-size: 13px; color: #64748b;">মোট বিল:</span><br>
-            <strong style="font-size: 20px; color: var(--accent);"><span id="mTotal">0</span> ৳</strong>
-        </div>
-        <button onclick="savePop()" style="background: var(--primary); color: #fff; border: none; padding: 14px; width: 100%; border-radius: 12px; font-weight: 700; cursor: pointer;">সেভ করুন</button>
-        <p onclick="hidePop()" style="text-align: center; color: #94a3b8; font-size: 13px; margin-top: 15px; cursor: pointer;">বন্ধ করুন</p>
+<div class="modal" id="modal">
+    <div class="modal-card">
+        <h3 style="margin: 0 0 15px 0; text-align: center;">ইউনিট হিসাব</h3>
+        <label>বর্তমান রিডিং</label><input type="number" id="curr" oninput="modalCalc()">
+        <label>পূর্বের রিডিং</label><input type="number" id="prev" oninput="modalCalc()">
+        <label>ইউনিট রেট (৳)</label><input type="number" id="rate" value="10" oninput="modalCalc()">
+        <p style="font-weight: bold; color: var(--main);">মোট বিল: <span id="m_bill">0</span> ৳</p>
+        <button class="btn-save" onclick="save()">সেভ করুন</button>
+        <p onclick="closeModal()" style="text-align:center; color:red; cursor:pointer; margin-top:10px;">বন্ধ করুন</p>
     </div>
 </div>
 
-<div class="actions">
-    <button class="btn btn-dl" onclick="exp('dl')">ডাউনলোড</button>
-    <button class="btn btn-sh" onclick="exp('sh')">শেয়ার করুন</button>
+<div class="btn-group">
+    <button class="btn btn-dl" onclick="process('download')">ডাউনলোড</button>
+    <button class="btn btn-sh" onclick="process('share')">শেয়ার করুন</button>
 </div>
 
 <script>
-    function showPop() { document.getElementById('pop').style.display = 'flex'; }
-    function hidePop() { document.getElementById('pop').style.display = 'none'; }
-    function mCalc() {
-        let res = ((parseFloat(document.getElementById('c').value) || 0) - (parseFloat(document.getElementById('p').value) || 0)) * (parseFloat(document.getElementById('r').value) || 0);
-        document.getElementById('mTotal').innerText = res > 0 ? res : 0;
+    function openModal() { document.getElementById('modal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
+    
+    function modalCalc() {
+        let c = parseFloat(document.getElementById('curr').value) || 0;
+        let p = parseFloat(document.getElementById('prev').value) || 0;
+        let r = parseFloat(document.getElementById('rate').value) || 0;
+        document.getElementById('m_bill').innerText = (c - p) * r;
     }
-    function savePop() {
-        document.getElementById('ebill').value = document.getElementById('mTotal').innerText;
-        hidePop(); calc();
+
+    function save() {
+        document.getElementById('elec-val').value = document.getElementById('m_bill').innerText;
+        closeModal();
+        calc();
     }
+
     function calc() {
-        let t = 0; document.querySelectorAll('.fee').forEach(f => t += parseFloat(f.value) || 0);
-        document.getElementById('grand').innerText = (t - (parseFloat(document.getElementById('joma').value) || 0)) + " ৳";
+        let fees = document.querySelectorAll('.fee');
+        let total = 0;
+        fees.forEach(f => total += parseFloat(f.value) || 0);
+        let joma = parseFloat(document.getElementById('joma').value) || 0;
+        document.getElementById('total-text').innerText = (total - joma) + " ৳";
     }
-    function exp(m) {
-        const box = document.getElementById('capture');
+
+    function process(mode) {
+        const area = document.getElementById('receipt');
         const rows = document.querySelectorAll('.item-row');
-        rows.forEach(r => {
-            let v = r.querySelector('input').value;
-            if (parseFloat(v) === 0 || v === "") r.classList.add('hide-row');
-            else { r.classList.remove('hide-row'); r.querySelector('input').setAttribute('value', v); }
+
+        // খালি ঘর হাইড করা
+        rows.forEach(row => {
+            let val = row.querySelector('input').value;
+            if (parseFloat(val) === 0 || val === "") {
+                row.classList.add('hide-row');
+            } else {
+                row.classList.remove('hide-row');
+                row.querySelector('input').setAttribute('value', val);
+            }
         });
 
-        html2canvas(box, { scale: 3, backgroundColor: "#f1f5f9", borderRadius: 24 }).then(cvs => {
-            rows.forEach(r => r.classList.remove('hide-row'));
-            if (m === 'dl') {
-                const a = document.createElement('a'); a.download = 'Receipt.png'; a.href = cvs.toDataURL(); a.click();
+        html2canvas(area, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
+            rows.forEach(row => row.classList.remove('hide-row')); // সব আবার দেখাবে
+
+            if (mode === 'download') {
+                const a = document.createElement('a');
+                a.download = 'Rent_Receipt.png';
+                a.href = canvas.toDataURL();
+                a.click();
             } else {
-                cvs.toBlob(b => {
-                    const f = new File([b], "R.png", {type:"image/png"});
-                    if (navigator.share) navigator.share({files:[f]});
+                canvas.toBlob(blob => {
+                    const file = new File([blob], "receipt.png", { type: "image/png" });
+                    if (navigator.share) navigator.share({ files: [file] });
                 });
             }
         });
