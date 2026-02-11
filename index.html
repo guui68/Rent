@@ -3,83 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ভাড়ার সহজ রশিদ</title>
+    <title>ভাড়ার ডিজিটাল রশিদ</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { font-family: 'Arial', sans-serif; background-color: #f0f2f5; padding: 20px; }
-        .invoice-box { max-width: 500px; background: white; margin: auto; padding: 30px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #1a2a6c; border-bottom: 2px solid #1a2a6c; padding-bottom: 10px; }
-        .field { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
-        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
-        input:focus { border-color: #1a2a6c; outline: none; }
-        .total-display { margin-top: 25px; padding: 15px; background: #eef2f7; border-left: 5px solid #1a2a6c; font-size: 20px; font-weight: bold; color: #1a2a6c; }
-        .btn-container { text-align: center; margin-top: 20px; }
-        .download-btn { background-color: #28a745; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; }
-        .download-btn:hover { background-color: #218838; }
+        body { font-family: 'Arial', sans-serif; background-color: #f0f2f5; padding: 10px; }
+        .invoice-card { 
+            max-width: 500px; 
+            background: white; 
+            margin: auto; 
+            padding: 25px; 
+            border: 2px solid #1a2a6c; 
+            border-radius: 10px;
+        }
+        h2 { text-align: center; color: #1a2a6c; margin-bottom: 20px; text-decoration: underline; }
+        .row { margin-bottom: 12px; display: flex; align-items: center; }
+        label { flex: 1; font-weight: bold; color: #333; }
+        input { 
+            flex: 2; 
+            padding: 8px; 
+            border: none; 
+            border-bottom: 1px dotted #333; 
+            outline: none; 
+            font-size: 16px;
+        }
+        .calculation-area { background: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 15px; }
+        .total-row { 
+            margin-top: 15px; 
+            padding-top: 10px; 
+            border-top: 2px solid #1a2a6c; 
+            font-size: 18px; 
+            font-weight: bold; 
+            color: #d9534f;
+        }
+        .btn-area { text-align: center; margin-top: 20px; }
+        .btn { 
+            background: #28a745; 
+            color: white; 
+            padding: 12px 25px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            width: 100%;
+        }
+        /* প্রিন্ট বা পিডিএফ এর সময় ইনপুট বর্ডার সরানোর জন্য */
+        @media print {
+            input { border: none; }
+            .btn-area { display: none; }
+        }
     </style>
 </head>
 <body>
 
-<div class="invoice-box" id="receipt-content">
+<div class="invoice-card" id="receipt-box">
     <h2>ভাড়ার রশিদ</h2>
     
-    <div class="field">
+    <div class="row">
         <label>তারিখঃ</label>
-        <input type="text" id="date" placeholder="উদাঃ ১০/০২/২০২৬">
+        <input type="text" id="in-date" placeholder="১০/০২/২০২৬">
     </div>
 
-    <div class="field">
-        <label>নামঃ</label>
-        <input type="text" id="name" placeholder="ভাড়াটিয়ার নাম">
+    <div class="row">
+        <label>ভাড়াটিয়ার নামঃ</label>
+        <input type="text" id="in-name">
     </div>
 
-    <div class="field">
-        <label>মাসিক ভাড়া (টাকা)ঃ</label>
-        <input type="number" class="amount" oninput="sumTotal()" value="0">
+    <div class="calculation-area">
+        <div class="row">
+            <label>মাসিক ভাড়াঃ</label>
+            <input type="number" class="calc" oninput="doSum()" id="v_rent" value="0">
+        </div>
+        <div class="row">
+            <label>বিদ্যুৎ বিলঃ</label>
+            <input type="number" class="calc" oninput="doSum()" id="v_elec" value="0">
+        </div>
+        <div class="row">
+            <label>WIFI বিলঃ</label>
+            <input type="number" class="calc" oninput="doSum()" id="v_wifi" value="0">
+        </div>
+        <div class="row">
+            <label>অন্যান্যঃ</label>
+            <input type="number" class="calc" oninput="doSum()" id="v_other" value="0">
+        </div>
+        <div class="row" style="color: blue;">
+            <label>জমা (Advance)ঃ</label>
+            <input type="number" id="v_advance" oninput="doSum()" value="0" style="color: blue; font-weight: bold;">
+        </div>
+
+        <div class="total-row">
+            নিট বকেয়া/মোটঃ <span id="final_total">0</span> টাকা
+        </div>
     </div>
 
-    <div class="field">
-        <label>বিদ্যুৎ বিল (টাকা)ঃ</label>
-        <input type="number" class="amount" oninput="sumTotal()" value="0">
-    </div>
-
-    <div class="field">
-        <label>WIFI বিল (টাকা)ঃ</label>
-        <input type="number" class="amount" oninput="sumTotal()" value="0">
-    </div>
-
-    <div class="field">
-        <label>অন্যান্য বিল (টাকা)ঃ</label>
-        <input type="number" class="amount" oninput="sumTotal()" value="0">
-    </div>
-
-    <div class="total-display">
-        মোট হিসাবঃ <span id="totalResult">0</span> টাকা
+    <div style="margin-top: 30px; display: flex; justify-content: space-between; font-size: 12px;">
+        <p>________________<br>মালিকের স্বাক্ষর</p>
+        <p>________________<br>ভাড়াটিয়ার স্বাক্ষর</p>
     </div>
 </div>
 
-<div class="btn-container" style="max-width: 500px; margin: 20px auto;">
-    <button class="download-btn" onclick="generatePDF()">রশিদ ডাউনলোড করুন (PDF)</button>
+<div class="btn-area" style="max-width: 500px; margin: 20px auto;">
+    <button class="btn" onclick="downloadReceipt()">রশিদের মতো সেভ করুন (PDF)</button>
 </div>
 
 <script>
-    function sumTotal() {
-        let amounts = document.getElementsByClassName('amount');
-        let total = 0;
-        for (let i = 0; i < amounts.length; i++) {
-            total += parseFloat(amounts[i].value) || 0;
-        }
-        document.getElementById('totalResult').innerText = total;
+    function doSum() {
+        let rent = parseFloat(document.getElementById('v_rent').value) || 0;
+        let elec = parseFloat(document.getElementById('v_elec').value) || 0;
+        let wifi = parseFloat(document.getElementById('v_wifi').value) || 0;
+        let other = parseFloat(document.getElementById('v_other').value) || 0;
+        let advance = parseFloat(document.getElementById('v_advance').value) || 0;
+
+        // মোট হিসাব = (সব বিলের যোগফল) - জমা
+        let total = (rent + elec + wifi + other) - advance;
+        
+        document.getElementById('final_total').innerText = total;
     }
 
-    function generatePDF() {
-        const element = document.getElementById('receipt-content');
+    function downloadReceipt() {
+        const element = document.getElementById('receipt-box');
+        
+        // পিডিএফ তৈরির আগে ইনপুট ভ্যালুগুলোকে টেক্সট হিসেবে বসানো যাতে মিস না হয়
+        const inputs = element.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.setAttribute('value', input.value);
+        });
+
         const opt = {
             margin: 10,
-            filename: 'Vara_Receipt.pdf',
+            filename: 'Vara_Rashid.pdf',
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
+            html2canvas: { scale: 3, useCORS: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
         html2pdf().from(element).set(opt).save();
