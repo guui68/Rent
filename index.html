@@ -3,65 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>এলিগ্যান্ট ভাড়ার রশিদ</title>
+    <title>স্মার্ট ভাড়ার রশিদ</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --primary: #0f172a; --accent: #3b82f6; --success: #22c55e; --danger: #ef4444; --card-bg: #ffffff; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; display: flex; flex-direction: column; align-items: center; padding: 20px; color: var(--primary); }
+        :root { --primary: #0f172a; --accent: #2563eb; --border-deep: #334155; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 15px; }
         
-        /* মেইন কার্ড ডিজাইন */
         .receipt-card { 
-            width: 100%; max-width: 440px; background: var(--card-bg); padding: 35px; 
-            border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-            position: relative; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);
+            width: 100%; max-width: 420px; background: #fff; padding: 30px; 
+            border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            position: relative; border: 1px solid #e2e8f0;
         }
 
-        /* স্টাইলিশ টপ ডিজাইন */
-        .receipt-card::before {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 8px;
-            background: linear-gradient(90deg, var(--accent), #a855f7);
-        }
+        .header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        .header h1 { margin: 0; font-size: 24px; color: var(--primary); }
 
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { margin: 0; font-size: 26px; font-weight: 800; color: var(--primary); text-transform: uppercase; }
-        .header p { margin: 5px 0; color: #64748b; font-size: 13px; letter-spacing: 1px; }
+        .info-section { margin-bottom: 20px; }
+        .info-row { display: flex; border-bottom: 1px solid #cbd5e1; padding: 8px 0; }
+        .info-row label { width: 100px; font-weight: bold; color: #475569; font-size: 14px; }
+        input { border: none; outline: none; width: 100%; font-size: 15px; background: transparent; font-family: inherit; }
 
-        .user-info { margin-bottom: 25px; background: #f8fafc; padding: 15px; border-radius: 12px; }
-        .info-row { display: flex; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
-        .info-row:last-child { border: none; }
-        .info-row label { width: 100px; font-weight: 600; font-size: 13px; color: #475569; }
-        input { border: none; outline: none; width: 100%; font-size: 15px; background: transparent; color: var(--primary); font-weight: 500; }
-
-        /* টেবিল স্টাইল */
-        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-        th { text-align: left; padding: 10px; font-size: 12px; color: #94a3b8; text-transform: uppercase; }
-        .item-row td { background: #fff; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; padding: 12px; }
-        .item-row td:first-child { border-left: 1px solid #f1f5f9; border-radius: 12px 0 0 12px; font-weight: 500; }
-        .item-row td:last-child { border-right: 1px solid #f1f5f9; border-radius: 0 12px 12px 0; text-align: right; }
+        /* টেবিল এবং গাঢ় বর্ডার */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 12px 10px; color: var(--primary); border-bottom: 2px solid var(--border-deep); font-size: 14px; }
+        .item-row td { padding: 12px 10px; border-bottom: 1.5px solid var(--border-deep); } /* বর্ডার আরও গাঢ় করা হয়েছে */
         
-        .amt-input { text-align: right; font-weight: 700; color: var(--primary); width: 100px; font-size: 16px; }
+        .amt-input { text-align: right; font-weight: bold; width: 100px; }
 
-        /* পপআপ স্টাইল */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-box { background: #fff; padding: 25px; border-radius: 20px; width: 320px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
-        .modal-box h3 { margin-bottom: 20px; font-size: 18px; text-align: center; }
-        .field { margin-bottom: 15px; }
-        .field label { display: block; font-size: 12px; margin-bottom: 5px; color: #64748b; }
-        .field input { border: 1.5px solid #e2e8f0; padding: 10px; border-radius: 10px; width: 93%; background: #f8fafc; }
+        /* পপআপ */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { background: #fff; padding: 25px; border-radius: 15px; width: 300px; }
+        .modal-box input { border: 1px solid #94a3b8; padding: 10px; border-radius: 8px; margin: 8px 0; width: 93%; }
 
-        .total-section { 
-            margin-top: 25px; padding: 20px; background: var(--primary); 
-            border-radius: 16px; color: #fff; display: flex; justify-content: space-between; align-items: center;
+        .total-box { 
+            margin-top: 25px; padding: 18px; background: var(--primary); 
+            border-radius: 12px; color: #fff; display: flex; justify-content: space-between; align-items: center;
         }
-        .total-section span { opacity: 0.8; font-size: 14px; }
-        .total-section h2 { margin: 0; font-size: 26px; font-weight: 700; color: #fff; }
+        .total-box h2 { margin: 0; font-size: 22px; }
 
-        /* বাটন স্টাইল */
-        .actions { width: 100%; max-width: 440px; margin-top: 25px; display: flex; gap: 12px; }
-        .btn { flex: 1; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-dl { background: #fff; color: var(--primary); border: 1px solid #e2e8f0; }
-        .btn-sh { background: var(--accent); color: #fff; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); }
-        .btn:active { transform: scale(0.96); }
+        .actions { width: 100%; max-width: 420px; margin-top: 20px; display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-dl { background: #334155; color: white; }
+        .btn-sh { background: #16a34a; color: white; }
         .hide-row { display: none !important; }
     </style>
 </head>
@@ -70,51 +53,48 @@
 <div class="receipt-card" id="capture">
     <div class="header">
         <h1>ভাড়ার রশিদ</h1>
-        <p>RENTAL PAYMENT RECEIPT</p>
+        <small style="font-weight: bold; color: #64748b;">অফিশিয়াল পেমেন্ট কপি</small>
     </div>
 
-    <div class="user-info">
-        <div class="info-row"><label>তারিখ</label> <input type="text" placeholder="১১ ফেব, ২০২৬"></div>
-        <div class="info-row"><label>বাড়িয়ালা</label> <input type="text" placeholder="মালিকের নাম"></div>
-        <div class="info-row"><label>ভাড়াটিয়া</label> <input type="text" placeholder="ভাড়াটিয়ার নাম"></div>
+    <div class="info-section">
+        <div class="info-row"><label>তারিখঃ</label> <input type="text" placeholder="১১/০২/২০২৬"></div>
+        <div class="info-row"><label>বাড়িয়ালাঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
+        <div class="info-row"><label>ভাড়াটিয়াঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
     </div>
 
     <table>
         <thead>
-            <tr><th>বিবরণ</th><th style="text-align: right;">পরিমাণ</th></tr>
+            <tr><th>বিবরণ</th><th style="text-align: right;">টাকা (৳)</th></tr>
         </thead>
-        <tbody id="list">
-            <tr class="item-row"><td>মাসিক ভাড়া</td><td><input type="number" class="fee" oninput="calc()" value="0"></td></tr>
+        <tbody>
+            <tr class="item-row"><td>মাসিক ভাড়া</td><td><input type="number" class="fee" value="0" onfocus="clearZero(this)" onblur="setZero(this)" oninput="calc()"></td></tr>
             <tr class="item-row">
-                <td>বিদ্যুৎ বিল <small onclick="showPop()" style="color: var(--accent); cursor: pointer; display: block; font-size: 10px; font-weight: 600;">(ইউনিক ক্যালকুলেটর)</small></td>
-                <td><input type="number" id="ebill" class="fee" oninput="calc()" value="0"></td>
+                <td>বিদ্যুৎ বিল <small onclick="openPop()" style="color: var(--accent); cursor: pointer; display: block; font-size: 10px;">(হিসাব করুন)</small></td>
+                <td><input type="number" id="ebill" class="fee" value="0" onfocus="clearZero(this)" onblur="setZero(this)" oninput="calc()"></td>
             </tr>
-            <tr class="item-row"><td>WIFI বিল</td><td><input type="number" class="fee" oninput="calc()" value="0"></td></tr>
-            <tr class="item-row"><td>বকেয়া ভাড়া</td><td><input type="number" class="fee" oninput="calc()" value="0"></td></tr>
-            <tr class="item-row"><td>হাওলাত</td><td><input type="number" class="fee" oninput="calc()" value="0"></td></tr>
-            <tr class="item-row"><td>অন্যান্য</td><td><input type="number" class="fee" oninput="calc()" value="0"></td></tr>
-            <tr class="item-row" style="color: var(--danger);"><td>(-) জমা</td><td><input type="number" id="joma" class="minus" oninput="calc()" value="0" style="color: var(--danger);"></td></tr>
+            <tr class="item-row"><td>WIFI বিল</td><td><input type="number" class="fee" value="0" onfocus="clearZero(this)" onblur="setZero(this)" oninput="calc()"></td></tr>
+            <tr class="item-row"><td>বকেয়া ভাড়া</td><td><input type="number" class="fee" value="0" onfocus="clearZero(this)" onblur="setZero(this)" oninput="calc()"></td></tr>
+            <tr class="item-row"><td>হাওলাত</td><td><input type="number" class="fee" value="0" onfocus="clearZero(this)" onblur="setZero(this)" oninput="calc()"></td></tr>
+            <tr class="item-row"><td>অন্যান্য</td><td><input type="number" class="fee" value="0" onfocus="clearZero(this)" onblur="setZero(this)" oninput="calc()"></td></tr>
+            <tr class="item-row" style="color: #dc2626;"><td>(-) জমা</td><td><input type="number" id="joma" class="minus" value="0" onfocus="clearZero(this)" onblur="setZero(this)" oninput="calc()" style="color: #dc2626;"></td></tr>
         </tbody>
     </table>
 
-    <div class="total-section">
-        <span>মোট প্রদেয় টাকা</span>
+    <div class="total-box">
+        <span style="font-size: 14px; opacity: 0.8;">মোট প্রদেয় টাকা</span>
         <h2 id="grand">0 ৳</h2>
     </div>
 </div>
 
 <div class="modal" id="pop">
     <div class="modal-box">
-        <h3>বিদ্যুৎ ইউনিট হিসাব</h3>
-        <div class="field"><label>বর্তমান রিডিং</label><input type="number" id="c" oninput="mCalc()"></div>
-        <div class="field"><label>পূর্বের রিডিং</label><input type="number" id="p" oninput="mCalc()"></div>
-        <div class="field"><label>ইউনিট রেট (৳)</label><input type="number" id="r" value="10" oninput="mCalc()"></div>
-        <div style="background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
-            <span style="font-size: 13px; color: #64748b;">মোট বিল:</span><br>
-            <strong style="font-size: 20px; color: var(--accent);"><span id="mTotal">0</span> ৳</strong>
-        </div>
-        <button onclick="savePop()" style="background: var(--primary); color: #fff; border: none; padding: 14px; width: 100%; border-radius: 12px; font-weight: 700; cursor: pointer;">সেভ করুন</button>
-        <p onclick="hidePop()" style="text-align: center; color: #94a3b8; font-size: 13px; margin-top: 15px; cursor: pointer;">বন্ধ করুন</p>
+        <h3 style="margin-top:0;">ইউনিট হিসাব</h3>
+        <input type="number" id="c" placeholder="বর্তমান রিডিং" oninput="mCalc()">
+        <input type="number" id="p" placeholder="পূর্বের রিডিং" oninput="mCalc()">
+        <input type="number" id="r" value="10" placeholder="ইউনিট রেট" oninput="mCalc()">
+        <p>বিল: <strong id="mTotal">0</strong> ৳</p>
+        <button onclick="savePop()" style="width:100%; padding:10px; background:var(--primary); color:white; border:none; border-radius:8px;">সেভ করুন</button>
+        <p onclick="closePop()" style="text-align:center; color:red; cursor:pointer; margin-top:10px;">বন্ধ করুন</p>
     </div>
 </div>
 
@@ -124,30 +104,39 @@
 </div>
 
 <script>
-    function showPop() { document.getElementById('pop').style.display = 'flex'; }
-    function hidePop() { document.getElementById('pop').style.display = 'none'; }
+    // ০ মুছার স্মার্ট ফাংশন
+    function clearZero(el) { if(el.value == "0") el.value = ""; }
+    function setZero(el) { if(el.value == "") el.value = "0"; }
+
+    function openPop() { document.getElementById('pop').style.display = 'flex'; }
+    function closePop() { document.getElementById('pop').style.display = 'none'; }
     function mCalc() {
         let res = ((parseFloat(document.getElementById('c').value) || 0) - (parseFloat(document.getElementById('p').value) || 0)) * (parseFloat(document.getElementById('r').value) || 0);
         document.getElementById('mTotal').innerText = res > 0 ? res : 0;
     }
     function savePop() {
         document.getElementById('ebill').value = document.getElementById('mTotal').innerText;
-        hidePop(); calc();
+        closePop(); calc();
     }
     function calc() {
         let t = 0; document.querySelectorAll('.fee').forEach(f => t += parseFloat(f.value) || 0);
-        document.getElementById('grand').innerText = (t - (parseFloat(document.getElementById('joma').value) || 0)) + " ৳";
+        let j = parseFloat(document.getElementById('joma').value) || 0;
+        document.getElementById('grand').innerText = (t - j) + " ৳";
     }
     function exp(m) {
         const box = document.getElementById('capture');
         const rows = document.querySelectorAll('.item-row');
         rows.forEach(r => {
             let v = r.querySelector('input').value;
-            if (parseFloat(v) === 0 || v === "") r.classList.add('hide-row');
-            else { r.classList.remove('hide-row'); r.querySelector('input').setAttribute('value', v); }
+            // শুধু সেভ করার সময় ০ ভ্যালু ওয়ালা রো হাইড হবে
+            if (v == "0" || v == "") r.classList.add('hide-row');
+            else { 
+                r.classList.remove('hide-row');
+                r.querySelector('input').setAttribute('value', v); 
+            }
         });
 
-        html2canvas(box, { scale: 3, backgroundColor: "#f1f5f9", borderRadius: 24 }).then(cvs => {
+        html2canvas(box, { scale: 3, backgroundColor: "#f8fafc" }).then(cvs => {
             rows.forEach(r => r.classList.remove('hide-row'));
             if (m === 'dl') {
                 const a = document.createElement('a'); a.download = 'Receipt.png'; a.href = cvs.toDataURL(); a.click();
