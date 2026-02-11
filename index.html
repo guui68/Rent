@@ -4,56 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ভাড়ার ডিজিটাল রশিদ</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #555; padding: 20px; }
-        /* রশিদের মূল ডিজাইন */
+        body { font-family: 'Arial', sans-serif; background: #ddd; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* রশিদের মূল বক্স */
         .invoice-card { 
-            max-width: 600px; 
+            width: 100%; 
+            max-width: 420px; 
             background: #fff; 
-            margin: auto; 
-            padding: 40px; 
-            border: 1px solid #000;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            position: relative;
+            padding: 25px; 
+            border: 2px solid #333; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        .header { text-align: center; border-bottom: 2px double #000; margin-bottom: 20px; }
-        .header h1 { margin: 0; font-size: 28px; text-transform: uppercase; }
         
-        .info-section { margin-bottom: 20px; line-height: 2; }
-        .info-section div { display: flex; border-bottom: 1px dotted #000; margin-bottom: 10px; }
-        .info-section label { font-weight: bold; width: 120px; }
-        
-        /* ইনপুট বক্সগুলো যাতে বর্ডারহীন দেখায় */
-        input { border: none; outline: none; width: 100%; font-size: 16px; font-family: inherit; background: transparent; }
-        
+        .header { text-align: center; border-bottom: 2px solid #333; margin-bottom: 20px; padding-bottom: 10px; }
+        .header h2 { margin: 0; color: #1a2a6c; font-size: 24px; }
+
+        .info { margin-bottom: 20px; }
+        .info div { display: flex; margin-bottom: 10px; border-bottom: 1px dotted #888; }
+        .info label { font-weight: bold; width: 110px; color: #444; }
+        input { border: none; outline: none; width: 100%; font-size: 16px; background: transparent; font-family: inherit; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        table th, table td { border: 1px solid #000; padding: 10px; text-align: left; }
+        table th, table td { border: 1px solid #333; padding: 10px; text-align: left; }
         .text-right { text-align: right; }
 
-        .footer-sign { margin-top: 50px; display: flex; justify-content: space-between; }
-        .btn-area { text-align: center; margin-top: 20px; }
-        
-        .download-btn { 
-            background: #e74c3c; color: #fff; padding: 15px 30px; 
-            border: none; border-radius: 5px; cursor: pointer; font-size: 18px; 
+        .total-box { 
+            margin-top: 20px; 
+            padding: 12px; 
+            background: #1a2a6c; 
+            color: #fff; 
+            text-align: right; 
+            font-size: 20px; 
+            font-weight: bold; 
+            border-radius: 4px;
         }
 
-        /* পিডিএফ এ বাটন লুকানোর জন্য */
-        @media print { .btn-area { display: none; } }
+        /* বাটন ডিজাইন */
+        .btn-group { width: 100%; max-width: 420px; margin-top: 20px; display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; color: white; transition: 0.3s; }
+        .share-btn { background: #25D366; } /* WhatsApp Green */
+        .download-btn { background: #007bff; }
+        .btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
 
 <div class="invoice-card" id="receipt">
     <div class="header">
-        <h1>ভাড়ার রশিদ</h1>
-        <p>ভাড়াটিয়ার কপি</p>
+        <h2>ভাড়ার রশিদ</h2>
     </div>
 
-    <div class="info-section">
-        <div><label>তারিখঃ</label> <input type="text" placeholder="দিন/মাস/বছর"></div>
-        <div><label>ভাড়াটিয়ার নামঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
+    <div class="info">
+        <div><label>তারিখঃ</label> <input type="text" placeholder="উদাঃ ১০/০২/২০২৬"></div>
+        <div><label>বাড়িয়ালার নামঃ</label> <input type="text" placeholder="মালিকের নাম লিখুন"></div>
+        <div><label>ভাড়াটিয়ার নামঃ</label> <input type="text" placeholder="ভাড়াটিয়ার নাম লিখুন"></div>
     </div>
 
     <table>
@@ -65,70 +71,81 @@
         </thead>
         <tbody>
             <tr>
-                <td>মাসিক বাড়ি ভাড়া</td>
-                <td><input type="number" class="amount" oninput="calculate()" value="0"></td>
+                <td>মাসিক ভাড়া</td>
+                <td><input type="number" class="val" oninput="calcTotal()" value="0"></td>
             </tr>
             <tr>
                 <td>বিদ্যুৎ বিল</td>
-                <td><input type="number" class="amount" oninput="calculate()" value="0"></td>
+                <td><input type="number" class="val" oninput="calcTotal()" value="0"></td>
             </tr>
             <tr>
                 <td>WIFI বিল</td>
-                <td><input type="number" class="amount" oninput="calculate()" value="0"></td>
+                <td><input type="number" class="val" oninput="calcTotal()" value="0"></td>
             </tr>
             <tr>
                 <td>অন্যান্য বিল</td>
-                <td><input type="number" class="amount" oninput="calculate()" value="0"></td>
+                <td><input type="number" class="val" oninput="calcTotal()" value="0"></td>
             </tr>
-            <tr style="color: blue; font-weight: bold;">
-                <td>(-) জমা / অগ্রিম</td>
-                <td><input type="number" id="advance" oninput="calculate()" value="0"></td>
-            </tr>
-            <tr>
-                <th class="text-right">মোট টাকা (নিট):</th>
-                <th class="text-right" style="background: #eee;"><span id="total-val">0</span> ৳</th>
+            <tr style="color: #d9534f;">
+                <td>(-) জমা/অগ্রিম</td>
+                <td><input type="number" id="adv-minus" oninput="calcTotal()" value="0"></td>
             </tr>
         </tbody>
     </table>
 
-    <div class="footer-sign">
-        <p style="border-top: 1px solid #000; padding-top: 5px;">ভাড়াটিয়ার স্বাক্ষর</p>
-        <p style="border-top: 1px solid #000; padding-top: 5px;">মালিকের স্বাক্ষর</p>
+    <div class="total-box">
+        মোট নিট টাকাঃ <span id="res-total">0</span> ৳
     </div>
 </div>
 
-<div class="btn-area">
-    <button class="download-btn" onclick="makePDF()">রশিদ ডাউনলোড করুন (PDF)</button>
+<div class="btn-group">
+    <button class="btn download-btn" onclick="processReceipt('download')">ডাউনলোড</button>
+    <button class="btn share-btn" onclick="processReceipt('share')">শেয়ার করুন</button>
 </div>
 
 <script>
-    function calculate() {
-        let fields = document.getElementsByClassName('amount');
+    // মোট টাকা ক্যালকুলেশন
+    function calcTotal() {
+        let rows = document.getElementsByClassName('val');
         let total = 0;
-        for (let i = 0; i < fields.length; i++) {
-            total += parseFloat(fields[i].value) || 0;
+        for (let i = 0; i < rows.length; i++) {
+            total += parseFloat(rows[i].value) || 0;
         }
-        let adv = parseFloat(document.getElementById('advance').value) || 0;
-        document.getElementById('total-val').innerText = (total - adv);
+        let advance = parseFloat(document.getElementById('adv-minus').value) || 0;
+        document.getElementById('res-total').innerText = (total - advance);
     }
 
-    function makePDF() {
-        const element = document.getElementById('receipt');
+    // ছবি তৈরি এবং শেয়ার/ডাউনলোড হ্যান্ডলার
+    function processReceipt(mode) {
+        const receiptArea = document.getElementById('receipt');
         
-        // বর্তমান ভ্যালুগুলো স্থায়ীভাবে সেট করা যাতে পিডিএফে দেখা যায়
-        const inputs = element.querySelectorAll('input');
+        // স্ক্রিনশট নেওয়ার সময় ইনপুট ভ্যালুগুলো ফিক্সড করা
+        const inputs = receiptArea.querySelectorAll('input');
         inputs.forEach(input => {
             input.setAttribute('value', input.value);
         });
 
-        const opt = {
-            margin: 0.5,
-            filename: 'Rent_Receipt.pdf',
-            image: { type: 'jpeg', quality: 1 },
-            html2canvas: { scale: 3 },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-        html2pdf().from(element).set(opt).save();
+        html2canvas(receiptArea, { scale: 3 }).then(canvas => {
+            if (mode === 'download') {
+                const link = document.createElement('a');
+                link.download = 'Vara_Receipt.png';
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            } else if (mode === 'share') {
+                canvas.toBlob(blob => {
+                    const file = new File([blob], "receipt.png", { type: "image/png" });
+                    if (navigator.share) {
+                        navigator.share({
+                            files: [file],
+                            title: 'ভাড়ার রশিদ',
+                            text: 'আপনার আজকের ভাড়ার রশিদটি পাঠানো হলো।'
+                        }).catch(e => console.error("Sharing failed", e));
+                    } else {
+                        alert("আপনার ব্রাউজারে সরাসরি শেয়ার সম্ভব নয়। ডাউনলোড বাটন ব্যবহার করে শেয়ার করুন।");
+                    }
+                });
+            }
+        });
     }
 </script>
 
