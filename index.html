@@ -1,148 +1,174 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ভাড়ার ডিজিটাল রশিদ</title>
+    <title>স্মার্ট অটো-হাইড রশিদ</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #ddd; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        :root { --primary: #003366; --gold: #d4af37; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 15px; }
         
-        /* রশিদের মূল বক্স */
-        .invoice-card { 
-            width: 100%; 
-            max-width: 420px; 
-            background: #fff; 
-            padding: 25px; 
-            border: 2px solid #333; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        .receipt-card { 
+            width: 100%; max-width: 450px; background: #fff; padding: 30px; 
+            border-radius: 15px; border-top: 10px solid var(--primary);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
         }
-        
-        .header { text-align: center; border-bottom: 2px solid #333; margin-bottom: 20px; padding-bottom: 10px; }
-        .header h2 { margin: 0; color: #1a2a6c; font-size: 24px; }
+        .header { text-align: center; border-bottom: 2px solid #eee; margin-bottom: 20px; }
+        .header h2 { margin: 0; color: var(--primary); }
 
-        .info { margin-bottom: 20px; }
-        .info div { display: flex; margin-bottom: 10px; border-bottom: 1px dotted #888; }
-        .info label { font-weight: bold; width: 110px; color: #444; }
-        input { border: none; outline: none; width: 100%; font-size: 16px; background: transparent; font-family: inherit; }
+        .info-row { display: flex; border-bottom: 1px solid #f0f0f0; padding: 8px 0; }
+        .info-row label { width: 110px; font-weight: bold; color: #666; font-size: 14px; }
+        input { border: none; outline: none; width: 100%; font-size: 15px; background: transparent; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        table th, table td { border: 1px solid #333; padding: 10px; text-align: left; }
-        .text-right { text-align: right; }
+        th { text-align: left; padding: 10px; color: var(--primary); border-bottom: 2px solid #eee; font-size: 14px; }
+        td { padding: 10px; border-bottom: 1px solid #f9f9f9; }
 
-        .total-box { 
-            margin-top: 20px; 
-            padding: 12px; 
-            background: #1a2a6c; 
-            color: #fff; 
-            text-align: right; 
-            font-size: 20px; 
-            font-weight: bold; 
-            border-radius: 4px;
-        }
+        /* পপ-আপ স্টাইল */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 300px; }
+        .modal-field { margin-bottom: 10px; }
+        .modal-field label { display: block; font-size: 13px; margin-bottom: 3px; }
+        .modal-field input { border: 1px solid #ddd; padding: 8px; border-radius: 5px; width: 93%; }
+        .save-btn { background: var(--primary); color: white; border: none; width: 100%; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
 
-        /* বাটন ডিজাইন */
-        .btn-group { width: 100%; max-width: 420px; margin-top: 20px; display: flex; gap: 10px; }
-        .btn { flex: 1; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; color: white; transition: 0.3s; }
-        .share-btn { background: #25D366; } /* WhatsApp Green */
-        .download-btn { background: #007bff; }
-        .btn:active { transform: scale(0.95); }
+        .total-display { margin-top: 20px; padding: 15px; background: var(--primary); color: white; border-radius: 10px; display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; }
+
+        .btn-group { width: 100%; max-width: 450px; margin-top: 20px; display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 15px; border: none; border-radius: 50px; cursor: pointer; color: white; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        .dl { background: var(--primary); }
+        .sh { background: #25D366; }
+
+        /* ডাউনলোড করার সময় ০ ভ্যালু ওয়ালা রো লুকানোর জন্য ক্লাস */
+        .hide-row { display: none !important; }
     </style>
 </head>
 <body>
 
-<div class="invoice-card" id="receipt">
+<div class="receipt-card" id="print-area">
     <div class="header">
         <h2>ভাড়ার রশিদ</h2>
+        <p style="color: var(--gold); margin: 5px 0; font-weight: bold;">স্মার্ট ডিজিটাল ইনভয়েস</p>
     </div>
 
-    <div class="info">
-        <div><label>তারিখঃ</label> <input type="text" placeholder="উদাঃ ১০/০২/২০২৬"></div>
-        <div><label>বাড়িয়ালার নামঃ</label> <input type="text" placeholder="মালিকের নাম লিখুন"></div>
-        <div><label>ভাড়াটিয়ার নামঃ</label> <input type="text" placeholder="ভাড়াটিয়ার নাম লিখুন"></div>
-    </div>
+    <div class="info-row"><label>তারিখঃ</label> <input type="text" placeholder="১১/০২/২০২৬"></div>
+    <div class="info-row"><label>বাড়িয়ালাঃ</label> <input type="text" placeholder="মালিকের নাম"></div>
+    <div class="info-row"><label>ভাড়াটিয়াঃ</label> <input type="text" placeholder="ভাড়াটিয়ার নাম"></div>
 
     <table>
         <thead>
-            <tr>
-                <th>বিবরণ</th>
-                <th class="text-right">টাকা</th>
-            </tr>
+            <tr><th>বিবরণ</th><th style="text-align: right;">টাকা (৳)</th></tr>
         </thead>
-        <tbody>
-            <tr>
+        <tbody id="table-body">
+            <tr class="row-item">
                 <td>মাসিক ভাড়া</td>
-                <td><input type="number" class="val" oninput="calcTotal()" value="0"></td>
+                <td align="right"><input type="number" class="fee" oninput="updateTotal()" value="0" style="text-align: right;"></td>
             </tr>
-            <tr>
-                <td>বিদ্যুৎ বিল</td>
-                <td><input type="number" class="val" oninput="calcTotal()" value="0"></td>
+            <tr class="row-item">
+                <td>বিদ্যুৎ বিল <small id="unit-link" style="color: blue; cursor: pointer; display: block; font-size: 10px;">(ইউনিট হিসাব করুন)</small></td>
+                <td align="right" style="vertical-align: bottom;"><input type="number" id="elec-bill" class="fee" oninput="updateTotal()" value="0" style="text-align: right; color: blue; font-weight: bold;" onclick="openModal()"></td>
             </tr>
-            <tr>
+            <tr class="row-item">
                 <td>WIFI বিল</td>
-                <td><input type="number" class="val" oninput="calcTotal()" value="0"></td>
+                <td align="right"><input type="number" class="fee" oninput="updateTotal()" value="0" style="text-align: right;"></td>
             </tr>
-            <tr>
-                <td>অন্যান্য বিল</td>
-                <td><input type="number" class="val" oninput="calcTotal()" value="0"></td>
+            <tr class="row-item">
+                <td>আগের বকেয়া</td>
+                <td align="right"><input type="number" class="fee" oninput="updateTotal()" value="0" style="text-align: right;"></td>
             </tr>
-            <tr style="color: #d9534f;">
-                <td>(-) জমা/অগ্রিম</td>
-                <td><input type="number" id="adv-minus" oninput="calcTotal()" value="0"></td>
+            <tr class="row-item">
+                <td>হাওলাত / ঋণ</td>
+                <td align="right"><input type="number" class="fee" oninput="updateTotal()" value="0" style="text-align: right;"></td>
+            </tr>
+            <tr class="row-item">
+                <td>অন্যান্য</td>
+                <td align="right"><input type="number" class="fee" oninput="updateTotal()" value="0" style="text-align: right;"></td>
+            </tr>
+            <tr class="row-item" style="color: green;">
+                <td>(-) অগ্রিম জমা</td>
+                <td align="right"><input type="number" id="adv" class="fee-minus" oninput="updateTotal()" value="0" style="text-align: right; color: green; font-weight: bold;"></td>
             </tr>
         </tbody>
     </table>
 
-    <div class="total-box">
-        মোট নিট টাকাঃ <span id="res-total">0</span> ৳
+    <div class="total-display">
+        <span>সর্বমোট পাওনাঃ</span>
+        <span id="final-total">0 ৳</span>
+    </div>
+</div>
+
+<div class="modal" id="unitModal">
+    <div class="modal-content">
+        <h3 style="margin-top:0; color:var(--primary); text-align:center;">ইউনিট ক্যালকুলেটর</h3>
+        <div class="modal-field"><label>বর্তমান রিডিং:</label><input type="number" id="current_unit" oninput="calcModal()"></div>
+        <div class="modal-field"><label>পূর্বের রিডিং:</label><input type="number" id="prev_unit" oninput="calcModal()"></div>
+        <div class="modal-field"><label>ইউনিট রেট (৳):</label><input type="number" id="unit_rate" value="10" oninput="calcModal()"></div>
+        <p>মোট বিল: <span id="m_bill" style="font-weight:bold; color:var(--primary);">0</span> ৳</p>
+        <button class="save-btn" onclick="saveModal()">সেভ করুন</button>
+        <button onclick="closeModal()" style="background:none; border:none; color:grey; width:100%; margin-top:10px; cursor:pointer;">বন্ধ করুন</button>
     </div>
 </div>
 
 <div class="btn-group">
-    <button class="btn download-btn" onclick="processReceipt('download')">ডাউনলোড</button>
-    <button class="btn share-btn" onclick="processReceipt('share')">শেয়ার করুন</button>
+    <button class="btn dl" onclick="generate('download')">ডাউনলোড</button>
+    <button class="btn sh" onclick="generate('share')">শেয়ার করুন</button>
 </div>
 
 <script>
-    // মোট টাকা ক্যালকুলেশন
-    function calcTotal() {
-        let rows = document.getElementsByClassName('val');
-        let total = 0;
-        for (let i = 0; i < rows.length; i++) {
-            total += parseFloat(rows[i].value) || 0;
-        }
-        let advance = parseFloat(document.getElementById('adv-minus').value) || 0;
-        document.getElementById('res-total').innerText = (total - advance);
+    function openModal() { document.getElementById('unitModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('unitModal').style.display = 'none'; }
+
+    function calcModal() {
+        let curr = parseFloat(document.getElementById('current_unit').value) || 0;
+        let prev = parseFloat(document.getElementById('prev_unit').value) || 0;
+        let rate = parseFloat(document.getElementById('unit_rate').value) || 0;
+        document.getElementById('m_bill').innerText = (curr - prev) * rate;
     }
 
-    // ছবি তৈরি এবং শেয়ার/ডাউনলোড হ্যান্ডলার
-    function processReceipt(mode) {
-        const receiptArea = document.getElementById('receipt');
-        
-        // স্ক্রিনশট নেওয়ার সময় ইনপুট ভ্যালুগুলো ফিক্সড করা
-        const inputs = receiptArea.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.setAttribute('value', input.value);
+    function saveModal() {
+        document.getElementById('elec-bill').value = document.getElementById('m_bill').innerText;
+        closeModal();
+        updateTotal();
+    }
+
+    function updateTotal() {
+        let fees = document.querySelectorAll('.fee');
+        let total = 0;
+        fees.forEach(f => total += parseFloat(f.value) || 0);
+        let adv = parseFloat(document.getElementById('adv').value) || 0;
+        document.getElementById('final-total').innerText = (total - adv) + " ৳";
+    }
+
+    function generate(mode) {
+        const area = document.getElementById('print-area');
+        const rows = document.querySelectorAll('.row-item');
+
+        // ফিল্টারিং: যেসব রো এর মান ০, সেগুলো সাময়িকভাবে লুকিয়ে ফেলা
+        rows.forEach(row => {
+            let input = row.querySelector('input');
+            if (parseFloat(input.value) === 0 || input.value === "") {
+                row.classList.add('hide-row');
+            } else {
+                row.classList.remove('hide-row');
+                input.setAttribute('value', input.value); // মান সেট করা
+            }
         });
 
-        html2canvas(receiptArea, { scale: 3 }).then(canvas => {
+        html2canvas(area, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
+            // কাজ শেষে সব রো আবার ফিরিয়ে আনা
+            rows.forEach(row => row.classList.remove('hide-row'));
+
             if (mode === 'download') {
-                const link = document.createElement('a');
-                link.download = 'Vara_Receipt.png';
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-            } else if (mode === 'share') {
+                const a = document.createElement('a');
+                a.download = 'Smart_Receipt.png';
+                a.href = canvas.toDataURL();
+                a.click();
+            } else {
                 canvas.toBlob(blob => {
                     const file = new File([blob], "receipt.png", { type: "image/png" });
-                    if (navigator.share) {
-                        navigator.share({
-                            files: [file],
-                            title: 'ভাড়ার রশিদ',
-                            text: 'আপনার আজকের ভাড়ার রশিদটি পাঠানো হলো।'
-                        }).catch(e => console.error("Sharing failed", e));
-                    } else {
-                        alert("আপনার ব্রাউজারে সরাসরি শেয়ার সম্ভব নয়। ডাউনলোড বাটন ব্যবহার করে শেয়ার করুন।");
-                    }
+                    if (navigator.share) navigator.share({ files: [file] });
+                    else alert("শেয়ার সাপোর্ট করছে না।");
                 });
             }
         });
@@ -151,3 +177,4 @@
 
 </body>
 </html>
+         
