@@ -35,15 +35,20 @@
         .del-btn { position: absolute; left: -25px; top: 50%; transform: translateY(-50%); color: red; border: none; background: none; cursor: pointer; font-weight: bold; }
 
         .total-box { margin-top: 15px; padding: 15px; background: #f8f9fa; border-left: 8px solid var(--main); border-bottom: 2px solid #000; display: flex; justify-content: space-between; align-items: center; }
-        
         .in-word-box { width: 100%; margin-top: 10px; font-size: 18px; color: #000; font-weight: 900; text-align: left; }
+
+        /* পপ-আপ স্টাইল */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-card { background: #fff; padding: 25px; border-radius: 12px; width: 300px; position: relative; border-top: 10px solid var(--main); box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .modal-card h3 { margin-top: 0; text-align: center; color: var(--main); border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .modal-card label { display: block; margin-top: 10px; font-weight: bold; font-size: 13px; color: #555; }
+        .modal-card input { border: 1px solid #ddd; padding: 10px; border-radius: 5px; margin-top: 5px; width: 93%; background: #f9f9f9; font-size: 16px; }
+        
+        .modal-result { background: #f0f4ff; margin-top: 15px; padding: 10px; border-radius: 5px; text-align: center; border: 1px dashed var(--main); font-weight: bold; }
 
         .btn-group { width: 100%; max-width: 450px; margin-top: 20px; display: flex; gap: 10px; }
         .btn { flex: 1; padding: 15px; border: none; border-radius: 5px; font-weight: bold; color: #fff; cursor: pointer; }
-        
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-card { background: #fff; padding: 20px; border-radius: 10px; width: 280px; }
-        .modal-card input, .modal-card select { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; font-size: 16px; }
+        .btn-save { background: var(--main); color: #fff; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 15px; }
 
         .hide-for-capture { display: none !important; }
         .editable-label { width: 100%; border: none; outline: none; background: transparent; cursor: pointer; }
@@ -97,18 +102,26 @@
 <div class="modal" id="modal-elec">
     <div class="modal-card">
         <h3>ইউনিট হিসাব</h3>
-        <input type="number" id="curr" placeholder="বর্তমান রিডিং">
-        <input type="number" id="prev" placeholder="পূর্বের রিডিং">
-        <input type="number" id="rate" value="10">
-        <button class="btn" style="background: #1a2a6c;" onclick="saveElec()">সেভ করুন</button>
-        <p onclick="closeModal('modal-elec')" style="text-align:center; color:red; cursor:pointer;">বন্ধ করুন</p>
+        <label>বর্তমান রিডিং (V)</label>
+        <input type="number" id="curr" placeholder="0" oninput="liveCalc()">
+        <label>পূর্বের রিডিং (P)</label>
+        <input type="number" id="prev" placeholder="0" oninput="liveCalc()">
+        <label>ইউনিট রেট (৳)</label>
+        <input type="number" id="rate" value="10" oninput="liveCalc()">
+        
+        <div class="modal-result">
+            ইউনিট: <span id="u-res">0</span> | বিল: <span id="b-res">0</span> ৳
+        </div>
+
+        <button class="btn-save" onclick="saveElec()">সেভ করুন</button>
+        <p onclick="closeModal('modal-elec')" style="text-align:center; color:red; cursor:pointer; margin-top:10px; font-weight:bold;">বন্ধ করুন</p>
     </div>
 </div>
 
 <div class="modal" id="modal-names">
     <div class="modal-card">
         <h3>বিবরণ সিলেক্ট করুন</h3>
-        <select id="name-selector">
+        <select id="name-selector" style="width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ddd; border-radius: 5px;">
             <option value="গ্যাস বিল">গ্যাস বিল</option>
             <option value="ফ্রিজ বিল">ফ্রিজ বিল</option>
             <option value="ময়লা বিল">ময়লা বিল</option>
@@ -116,7 +129,7 @@
             <option value="গ্যারেজ বিল">গ্যারেজ বিল</option>
             <option value="সার্ভিস চার্জ">সার্ভিস চার্জ</option>
         </select>
-        <button class="btn" style="background: #1a2a6c;" onclick="applyName()">ওকে</button>
+        <button class="btn-save" onclick="applyName()">ওকে</button>
     </div>
 </div>
 
@@ -160,12 +173,22 @@
     function openElecModal() { document.getElementById('modal-elec').style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    function saveElec() {
+    function liveCalc() {
         let c = parseFloat(document.getElementById('curr').value) || 0;
         let p = parseFloat(document.getElementById('prev').value) || 0;
         let r = parseFloat(document.getElementById('rate').value) || 0;
         let u = c - p;
-        document.getElementById('elec-val').value = u * r;
+        document.getElementById('u-res').innerText = u > 0 ? u : 0;
+        document.getElementById('b-res').innerText = u > 0 ? (u * r) : 0;
+    }
+
+    function saveElec() {
+        let c = document.getElementById('curr').value || 0;
+        let p = document.getElementById('prev').value || 0;
+        let u = document.getElementById('u-res').innerText;
+        let b = document.getElementById('b-res').innerText;
+        
+        document.getElementById('elec-val').value = b;
         document.getElementById('ebill-info').innerText = `V=${c} P=${p} U=${u}`;
         closeModal('modal-elec'); calc();
     }
