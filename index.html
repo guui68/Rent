@@ -6,7 +6,7 @@
     <title>প্রিমিয়াম ভাড়ার রশিদ</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --main: #1a2a6c; --text: #333; --border-color: #000; }
+        :root { --main: #1a2a6c; --accent: #f2a900; --text: #333; --border-color: #000; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #e9ecef; display: flex; flex-direction: column; align-items: center; padding: 15px; }
         
         .receipt-container { 
@@ -34,6 +34,7 @@
             padding: 8px; width: 100%; margin-bottom: 15px; cursor: pointer;
             font-weight: bold; border-radius: 4px; transition: 0.3s;
         }
+        .add-btn:hover { background: #e2e6ea; }
 
         table { width: 100%; border-collapse: collapse; border: 2px solid var(--main); }
         th { background: var(--main); color: #fff; padding: 12px; font-size: 15px; text-align: left; }
@@ -67,8 +68,8 @@
         .btn-dl { background: #333; }
         .btn-sh { background: #25D366; }
         
-        /* হাইড করার ক্লাস */
-        .hide-for-capture { display: none !important; }
+        .hide-row, .hide-text, .hide-btn, .del-btn-hide { display: none !important; }
+        #calc-link { color: blue; cursor: pointer; display: block; font-size: 10px; font-weight: bold; }
         .editable-label { width: 100%; border: none; outline: none; background: transparent; }
     </style>
 </head>
@@ -81,13 +82,13 @@
     </div>
 
     <div class="info-box">
-        <div><label>তারিখঃ</label> <input type="text" placeholder="১৫/০২/২০২৬"></div>
+        <div><label>তারিখঃ</label> <input type="text" id="date-input" placeholder="১৫/০২/২০২৬"></div>
         <div><label>বাড়িয়ালাঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
-        <div><label>রুম নংঃ</label> <input type="text" placeholder="১০২"></div>
-        <div><label>ভাড়াটিয়াঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
+        <div><label>রুম নংঃ</label> <input type="text" id="room-input" placeholder="যেমন: ১০২"></div>
+        <div><label>ভাড়াটিয়াঃ</label> <input type="text" id="tenant-input" placeholder="নাম লিখুন"></div>
     </div>
 
-    <button class="add-btn capture-hide" id="add-item-btn" onclick="addNewRow()">+ নতুন আইটেম যোগ করুন</button>
+    <button class="add-btn" id="add-item-btn" onclick="addNewRow()">+ নতুন আইটেম যোগ করুন</button>
 
     <table>
         <thead>
@@ -97,23 +98,27 @@
             </tr>
         </thead>
         <tbody id="items-table">
-            <tr class="item-row"><td>মাসিক ভাড়া</td><td class="amt-col"><input type="number" class="fee" oninput="calc()" value="0" style="text-align: right;"></td></tr>
+            <tr class="item-row"><td>মাসিক ভাড়া</td><td class="amt-col"><input type="number" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;"></td></tr>
             <tr class="item-row">
                 <td>
-                    বিদ্যুৎ বিল <small class="capture-hide" style="color:blue; cursor:pointer;" onclick="openModal()">(ক্যালকুলেটর)</small>
+                    বিদ্যুৎ বিল <small id="calc-link" onclick="openModal()">(ক্যালকুলেটর)</small>
                 </td>
                 <td class="amt-col">
-                    <input type="number" id="elec-val" class="fee" oninput="checkType()" value="0" style="text-align: right; width: 100%;">
+                    <input type="number" id="elec-val" class="fee" onfocus="if(this.value=='0')this.value=''" oninput="checkType()" onblur="if(this.value=='')this.value='0'" value="0" style="text-align: right; width: 100%;">
                     <div id="ebill-info" class="reading-text"></div>
                 </td>
             </tr>
-            <tr class="item-row"><td>WIFI বিল</td><td class="amt-col"><input type="number" class="fee" oninput="calc()" value="0" style="text-align: right;"></td></tr>
-            <tr class="item-row"><td>বকেয়া ভাড়া</td><td class="amt-col"><input type="number" class="fee" oninput="calc()" value="0" style="text-align: right;"></td></tr>
+            <tr class="item-row"><td>WIFI বিল</td><td class="amt-col"><input type="number" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;"></td></tr>
+            <tr class="item-row"><td>বকেয়া ভাড়া</td><td class="amt-col"><input type="number" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;"></td></tr>
+            <tr class="item-row">
+                <td><input type="text" class="editable-label" value="অন্যান্য" onfocus="this.select()"></td>
+                <td class="amt-col"><input type="number" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;"></td>
+            </tr>
         </tbody>
         <tfoot>
             <tr class="item-row" style="background: #fff5f5;">
                 <td style="color: #d32f2f; font-weight: bold;">(-) জমা</td>
-                <td class="amt-col"><input type="number" id="joma" class="minus" oninput="calc()" value="0" style="text-align: right; color: #d32f2f;"></td>
+                <td class="amt-col"><input type="number" id="joma" class="minus" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right; color: #d32f2f;"></td>
             </tr>
         </tfoot>
     </table>
@@ -130,8 +135,9 @@
         <label>বর্তমান (V)</label><input type="number" id="curr" oninput="modalCalc()">
         <label>পূর্বের (P)</label><input type="number" id="prev" oninput="modalCalc()">
         <label>রেট (৳)</label><input type="number" id="rate" value="10" oninput="modalCalc()">
+        <p style="font-weight: bold; text-align: center;">বিল: <span id="m_bill">0</span> ৳</p>
         <button class="btn-save" onclick="save()">সেভ করুন</button>
-        <p onclick="closeModal()" style="text-align:center; color:red; cursor:pointer; margin-top:10px;">বন্ধ করুন</p>
+        <p onclick="closeModal()" style="text-align:center; color:red; cursor:pointer;">বন্ধ</p>
     </div>
 </div>
 
@@ -145,76 +151,69 @@
         const table = document.getElementById('items-table');
         const row = document.createElement('tr');
         row.className = 'item-row';
-        row.innerHTML = `
-            <td>
-                <button class="del-btn capture-hide" onclick="this.parentElement.parentElement.remove(); calc();">×</button>
-                <input type="text" class="editable-label" placeholder="নাম লিখুন">
-            </td>
-            <td class="amt-col"><input type="number" class="fee" oninput="calc()" value="0" style="text-align: right;"></td>
-        `;
+        row.innerHTML = `<td><button class="del-btn" onclick="this.parentElement.parentElement.remove(); calc();">×</button><input type="text" class="editable-label" placeholder="নাম লিখুন"></td><td class="amt-col"><input type="number" class="fee" oninput="calc()" value="0" style="text-align: right;"></td>`;
         table.appendChild(row);
     }
 
     function openModal() { document.getElementById('modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
-    
     function modalCalc() {
         let c = parseFloat(document.getElementById('curr').value) || 0;
         let p = parseFloat(document.getElementById('prev').value) || 0;
         let r = parseFloat(document.getElementById('rate').value) || 0;
-        let unit = c - p;
-        return { unit: unit > 0 ? unit : 0, bill: unit > 0 ? (unit * r) : 0 };
+        document.getElementById('m_bill').innerText = (c - p) > 0 ? (c - p) * r : 0;
     }
-
     function save() {
-        let res = modalCalc();
-        document.getElementById('elec-val').value = res.bill;
-        document.getElementById('ebill-info').innerText = "V=" + document.getElementById('curr').value + " P=" + document.getElementById('prev').value + " U=" + res.unit;
+        let v = document.getElementById('curr').value;
+        let p = document.getElementById('prev').value;
+        let bill = document.getElementById('m_bill').innerText;
+        document.getElementById('elec-val').value = bill;
+        document.getElementById('ebill-info').innerText = "V=" + v + " P=" + p;
         closeModal(); calc();
     }
-
-    function checkType() {
-        document.getElementById('ebill-info').innerText = ""; 
-        calc();
-    }
-
+    function checkType() { document.getElementById('ebill-info').innerText = ""; calc(); }
     function calc() {
-        let total = 0; 
-        document.querySelectorAll('.fee').forEach(f => total += parseFloat(f.value) || 0);
+        let total = 0; document.querySelectorAll('.fee').forEach(f => total += parseFloat(f.value) || 0);
         let joma = parseFloat(document.getElementById('joma').value) || 0;
         document.getElementById('total-text').innerText = (total - joma) + " ৳";
     }
 
-    async function process(mode) {
+    function process(mode) {
         const area = document.getElementById('receipt');
         const rows = document.querySelectorAll('.item-row');
         
-        // ১. যেগুলোর টাকা ০ সেগুলো অস্থায়ীভাবে হাইড করা
+        // ফাইল নেম জেনারেশন লজিক
+        let tenantName = document.getElementById('tenant-input').value.trim() || "ভাড়াটিয়া";
+        let roomNo = document.getElementById('room-input').value.trim() || "রুম_নেই";
+        let fileName = tenantName + "_রুম_" + roomNo + ".png";
+
+        document.getElementById('calc-link').classList.add('hide-text');
+        document.getElementById('add-item-btn').classList.add('hide-btn'); 
+        document.querySelectorAll('.del-btn').forEach(b => b.classList.add('del-btn-hide'));
+
         rows.forEach(row => {
-            let val = parseFloat(row.querySelector('input[type="number"]').value) || 0;
-            if(val === 0) row.classList.add('hide-for-capture');
+            let input = row.querySelector('.fee') || row.querySelector('.minus');
+            if (parseFloat(input.value) === 0) row.classList.add('hide-row');
         });
 
-        // ২. বাটনগুলো হাইড করা
-        document.querySelectorAll('.capture-hide, .del-btn').forEach(el => el.classList.add('hide-for-capture'));
+        html2canvas(area, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
+            rows.forEach(row => row.classList.remove('hide-row'));
+            document.getElementById('calc-link').classList.remove('hide-text');
+            document.getElementById('add-item-btn').classList.remove('hide-btn'); 
+            document.querySelectorAll('.del-btn').forEach(b => b.classList.remove('del-btn-hide'));
 
-        // ৩. ইমেজ জেনারেট করা
-        const canvas = await html2canvas(area, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-        
-        // ৪. হাইড করা জিনিসগুলো আবার ফিরিয়ে আনা
-        document.querySelectorAll('.hide-for-capture').forEach(el => el.classList.remove('hide-for-capture'));
-
-        if (mode === 'download') {
-            const link = document.createElement('a');
-            link.download = 'Receipt_' + Date.now() + '.png'; // প্রতিবার আলাদা নাম হবে
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-        } else {
-            canvas.toBlob(blob => {
-                const file = new File([blob], "receipt.png", { type: "image/png" });
-                if (navigator.share) navigator.share({ files: [file] });
-            });
-        }
+            if (mode === 'download') {
+                const a = document.createElement('a');
+                a.download = fileName; // এখানে নতুন নাম সেট করা হয়েছে
+                a.href = canvas.toDataURL();
+                a.click();
+            } else {
+                canvas.toBlob(blob => {
+                    const file = new File([blob], fileName, { type: "image/png" });
+                    if (navigator.share) navigator.share({ files: [file] });
+                });
+            }
+        });
     }
 </script>
 </body>
