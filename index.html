@@ -29,26 +29,24 @@
         .info-box label { font-weight: bold; width: 110px; color: #000; }
         input { border: none; outline: none; width: 100%; font-family: inherit; font-size: 15px; color: var(--text); background: transparent; }
 
-        /* টেবিল ডিজাইন */
         table { width: 100%; border-collapse: collapse; border: 2px solid var(--main); }
         th { background: var(--main); color: #fff; padding: 12px; font-size: 15px; text-align: left; }
-        td { padding: 12px; border-bottom: 1.5px solid var(--border-color); font-size: 15px; color: #000; }
+        td { padding: 12px; border-bottom: 1.5px solid var(--border-color); font-size: 15px; color: #000; position: relative; }
         
-        /* টাকার কলাম এবং তথ্য দেখানোর স্টাইল */
-        .amt-col-wrapper { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
-        .amt-col { text-align: right; font-weight: bold; width: 140px; }
+        .amt-col { text-align: right; font-weight: bold; width: 150px; }
         
-        /* বাম পাশের নীল রিডিং টেক্সট */
+        /* নীল লেখাটির পজিশন: বামে এবং একটু ওপরে */
         .reading-text { 
             font-size: 12px; 
-            color: #0047ab; /* Deep Blue Color */
+            color: #0047ab; 
             font-weight: 800; 
-            text-align: left; 
-            margin-top: 4px;
+            position: absolute;
+            left: 12px;   /* একদম বামে */
+            bottom: 6px;  /* একটু ওপরে */
             letter-spacing: 0.5px;
+            pointer-events: none; /* যাতে ইনপুটে ক্লিক করতে সমস্যা না হয় */
         }
 
-        /* পপ-আপ ডিজাইন */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
         .modal-card { background: #fff; padding: 25px; border-radius: 10px; width: 300px; }
         .modal-card input { border: 1px solid #000; padding: 10px; border-radius: 5px; margin: 8px 0; width: 93%; background: #fff; }
@@ -101,10 +99,11 @@
                     <small id="calc-link" onclick="openModal()">(ক্যালকুলেটর)</small>
                 </td>
                 <td class="amt-col">
-                    <div class="amt-col-wrapper">
-                        <input type="number" id="elec-val" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right; width: 100%;">
-                        <div id="ebill-info" class="reading-text"></div>
-                    </div>
+                    <input type="number" id="elec-val" class="fee" 
+                           onfocus="manualInput()" 
+                           onblur="if(this.value=='')this.value='0'" 
+                           oninput="calc()" value="0" style="text-align: right; width: 100%;">
+                    <div id="ebill-info" class="reading-text"></div>
                 </td>
             </tr>
             <tr class="item-row"><td>WIFI বিল</td><td class="amt-col"><input type="number" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;"></td></tr>
@@ -144,6 +143,7 @@
 <script>
     function openModal() { document.getElementById('modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
+    
     function modalCalc() {
         let c = parseFloat(document.getElementById('curr').value) || 0;
         let p = parseFloat(document.getElementById('prev').value) || 0;
@@ -152,21 +152,30 @@
         document.getElementById('u_count').innerText = unit > 0 ? unit : 0;
         document.getElementById('m_bill').innerText = unit > 0 ? (unit * r) : 0;
     }
+
     function save() {
         let v = document.getElementById('curr').value || 0;
         let p = document.getElementById('prev').value || 0;
         let u = document.getElementById('u_count').innerText;
         document.getElementById('elec-val').value = document.getElementById('m_bill').innerText;
-        // বাম পাশে এবং বড় নীল অক্ষরে তথ্য দেখানো
+        // নীল লেখা সেট করা
         document.getElementById('ebill-info').innerText = "V=" + v + " P=" + p + " U=" + u;
         closeModal(); calc();
     }
+
+    // সরাসরি টাকার ঘরে লিখলে নীল লেখা মুছে যাবে
+    function manualInput() {
+        let input = document.getElementById('elec-val');
+        if(input.value == '0') input.value = '';
+        document.getElementById('ebill-info').innerText = ""; 
+    }
+
     function calc() {
         let total = 0; document.querySelectorAll('.fee').forEach(f => total += parseFloat(f.value) || 0);
         let joma = parseFloat(document.getElementById('joma').value) || 0;
         document.getElementById('total-text').innerText = (total - joma) + " ৳";
-        if(parseFloat(document.getElementById('elec-val').value) == 0) document.getElementById('ebill-info').innerText = "";
     }
+
     function process(mode) {
         const area = document.getElementById('receipt');
         const rows = document.querySelectorAll('.item-row');
