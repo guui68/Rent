@@ -8,101 +8,135 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root { --main: #1a2a6c; --text: #333; --border-color: #000; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #e9ecef; display: flex; flex-direction: column; align-items: center; padding: 15px; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #d1d9e0; display: flex; flex-direction: column; align-items: center; padding: 15px; }
         
+        /* রশিদের উপরের সেই বিশেষ পর্দা ডিজাইন */
         .receipt-container { 
-            width: 100%; max-width: 450px; background: #fff; padding: 30px; 
-            border-radius: 5px; box-shadow: 0 15px 40px rgba(0,0,0,0.1);
-            border-top: 15px solid var(--main); position: relative;
+            width: 100%; max-width: 450px; background: #fff; padding: 0 0 30px 0; 
+            border-radius: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            overflow: hidden; position: relative; border: 1px solid #ccc;
         }
 
-        .header { text-align: center; margin-bottom: 20px; }
-        .header h1 { margin: 0; font-size: 28px; color: var(--main); letter-spacing: 2px; }
+        .top-curtain {
+            background: var(--main);
+            height: 100px;
+            width: 100%;
+            border-radius: 0 0 50% 50% / 0 0 25% 25%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
 
-        .info-box div { display: flex; margin-bottom: 8px; border-bottom: 2px solid #555; padding-bottom: 3px; }
+        .top-curtain h1 { color: #fff; margin: 0; font-size: 32px; letter-spacing: 3px; text-transform: uppercase; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        .content-padding { padding: 0 30px; }
+
+        /* জলছাপ / Watermark */
+        .receipt-container::before {
+            content: "PAID";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 100px;
+            color: rgba(0, 0, 0, 0.03);
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .info-box div { display: flex; margin-bottom: 10px; border-bottom: 2px solid #666; padding-bottom: 3px; position: relative; z-index: 1; }
         .info-box label { font-weight: bold; width: 110px; color: #000; }
-        input { border: none; outline: none; width: 100%; font-family: inherit; font-size: 15px; background: transparent; }
+        input { border: none; outline: none; width: 100%; font-family: inherit; font-size: 15px; background: transparent; color: #000; }
 
-        .add-btn { background: #f1f3f5; color: var(--main); border: 1px dashed var(--main); padding: 8px; width: 100%; margin-bottom: 15px; cursor: pointer; font-weight: bold; }
+        .add-btn { background: #f8f9fa; color: var(--main); border: 1.5px dashed var(--main); padding: 8px; width: 100%; margin-bottom: 15px; cursor: pointer; font-weight: bold; border-radius: 5px; }
 
-        table { width: 100%; border-collapse: collapse; border: 2px solid var(--main); }
-        th { background: var(--main); color: #fff; padding: 10px; text-align: left; }
+        table { width: 100%; border-collapse: collapse; border: 2px solid var(--main); position: relative; z-index: 1; }
+        th { background: var(--main); color: #fff; padding: 12px; text-align: left; }
         td { padding: 10px; border-bottom: 1.5px solid var(--border-color); position: relative; }
         
         .amt-col { text-align: right; font-weight: bold; width: 120px; }
         .reading-text { font-size: 11px; color: #0047ab; font-weight: 800; position: absolute; left: 10px; bottom: 2px; pointer-events: none; }
-        #calc-link { color: blue; cursor: pointer; display: block; font-size: 10px; font-weight: bold; }
+        #calc-link { color: #0047ab; cursor: pointer; display: block; font-size: 10px; font-weight: bold; text-decoration: underline; }
 
-        .del-btn { position: absolute; left: -25px; top: 50%; transform: translateY(-50%); color: red; border: none; background: none; cursor: pointer; font-weight: bold; }
+        .del-btn { position: absolute; left: -25px; top: 50%; transform: translateY(-50%); color: red; border: none; background: none; cursor: pointer; font-weight: bold; font-size: 20px; }
 
-        .total-box { margin-top: 15px; padding: 15px; background: #f8f9fa; border-left: 8px solid var(--main); border-bottom: 2px solid #000; display: flex; justify-content: space-between; align-items: center; }
+        .total-box { margin-top: 15px; padding: 15px; background: #eef2ff; border-left: 8px solid var(--main); border-bottom: 2px solid #000; display: flex; justify-content: space-between; align-items: center; }
         .in-word-box { width: 100%; margin-top: 10px; font-size: 18px; color: #000; font-weight: 900; text-align: left; }
 
+        /* পপআপ স্টাইল */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-card { background: #fff; padding: 25px; border-radius: 12px; width: 300px; border-top: 10px solid var(--main); box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-        .modal-card input { border: 1px solid #ddd; padding: 10px; border-radius: 5px; margin-top: 5px; width: 93%; background: #f9f9f9; font-size: 16px; }
+        .modal-card { background: #fff; padding: 25px; border-radius: 12px; width: 300px; border-top: 10px solid var(--main); box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+        .modal-card h3 { margin-top: 0; text-align: center; color: var(--main); border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .modal-card input, .modal-card select { border: 1px solid #ddd; padding: 10px; border-radius: 5px; margin: 10px 0; width: 93%; background: #f9f9f9; font-size: 16px; }
         
-        .btn-group { width: 100%; max-width: 450px; margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; }
-        .btn { flex: 1; min-width: 100px; padding: 12px; border: none; border-radius: 5px; font-weight: bold; color: #fff; cursor: pointer; font-size: 14px; }
-        .btn-save { background: var(--main); color: #fff; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn-group { width: 100%; max-width: 450px; margin-top: 20px; display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; color: #fff; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-save { background: var(--main); color: #fff; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 
         .hide-for-capture { display: none !important; }
-        .editable-label { width: 100%; border: none; outline: none; background: transparent; cursor: pointer; }
+        .editable-label { width: 100%; border: none; outline: none; background: transparent; cursor: pointer; color: inherit; font-weight: inherit; }
     </style>
 </head>
 <body>
 
 <div class="receipt-container" id="receipt">
-    <div class="header"><h1>ভাড়ার রশিদ</h1></div>
-
-    <div class="info-box">
-        <div><label>তারিখঃ</label> <input type="text" id="date-input" placeholder="১৫/০২/২০২৬" ondblclick="setToday()"></div>
-        <div><label>বাড়িয়ালাঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
-        <div><label>রুম নংঃ</label> <input type="text" id="room-input" placeholder="১০২"></div>
-        <div><label>ভাড়াটিয়াঃ</label> <input type="text" id="tenant-input" placeholder="নাম লিখুন"></div>
+    <div class="top-curtain">
+        <h1>ভাড়ার রশিদ</h1>
     </div>
 
-    <button class="add-btn capture-hide" onclick="addNewRow()">+ নতুন আইটেম যোগ করুন</button>
+    <div class="content-padding">
+        <div class="info-box">
+            <div><label>তারিখঃ</label> <input type="text" id="date-input" placeholder="১৫/০২/২০২৬" ondblclick="setToday()"></div>
+            <div><label>বাড়িয়ালাঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
+            <div><label>রুম নংঃ</label> <input type="text" id="room-input" placeholder="১০২"></div>
+            <div><label>ভাড়াটিয়াঃ</label> <input type="text" id="tenant-input" placeholder="নাম লিখুন"></div>
+        </div>
 
-    <table>
-        <thead><tr><th>বিবরণ</th><th style="text-align: right;">টাকা (৳)</th></tr></thead>
-        <tbody id="items-table">
-            <tr class="item-row"><td>মাসিক ভাড়া</td><td class="amt-col"><input type="number" class="fee" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="calc()" value="0" style="text-align: right;"></td></tr>
-            <tr class="item-row">
-                <td>বিদ্যুৎ বিল <small id="calc-link" class="capture-hide" onclick="openElecModal()">(ক্যালকুলেটর)</small></td>
-                <td class="amt-col">
-                    <input type="number" id="elec-val" class="fee" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="checkType()" value="0" style="text-align: right; width: 100%;">
-                    <div id="ebill-info" class="reading-text"></div>
-                </td>
-            </tr>
-            <tr class="item-row"><td>Wifi বিল</td><td class="amt-col"><input type="number" class="fee" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="calc()" value="0" style="text-align: right;"></td></tr>
-            <tr class="item-row"><td>ময়লার বিল</td><td class="amt-col"><input type="number" class="fee" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="calc()" value="0" style="text-align: right;"></td></tr>
-            <tr class="item-row"><td>আগের বকেয়া</td><td class="amt-col"><input type="number" class="fee" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="calc()" value="0" style="text-align: right;"></td></tr>
-            <tr class="item-row"><td>হাওলাত</td><td class="amt-col"><input type="number" class="fee" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="calc()" value="0" style="text-align: right;"></td></tr>
-        </tbody>
-        <tfoot>
-            <tr class="item-row" style="background: #fff5f5;">
-                <td style="color: #d32f2f; font-weight: bold;">(-) জমা</td>
-                <td class="amt-col"><input type="number" id="joma" class="minus" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="calc()" value="0" style="text-align: right; color: #d32f2f;"></td>
-            </tr>
-        </tfoot>
-    </table>
+        <button class="add-btn capture-hide" onclick="addNewRow()">+ নতুন আইটেম যোগ করুন</button>
 
-    <div class="total-box">
-        <span>মোট পাওনাঃ</span>
-        <h2 id="total-text">0 ৳</h2>
+        <table>
+            <thead><tr><th>বিবরণ</th><th style="text-align: right;">টাকা (৳)</th></tr></thead>
+            <tbody id="items-table">
+                <tr class="item-row"><td>মাসিক ভাড়া</td><td class="amt-col"><input type="number" class="fee" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="calc()" value="0" style="text-align: right;"></td></tr>
+                <tr class="item-row">
+                    <td>বিদ্যুৎ বিল <small id="calc-link" class="capture-hide" onclick="openElecModal()">(হিসাব করুন)</small></td>
+                    <td class="amt-col">
+                        <input type="number" id="elec-val" class="fee" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="checkType()" value="0" style="text-align: right; width: 100%;">
+                        <div id="ebill-info" class="reading-text"></div>
+                    </td>
+                </tr>
+                <tr class="item-row"><td>Wifi বিল</td><td class="amt-col"><input type="number" class="fee" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="calc()" value="0" style="text-align: right;"></td></tr>
+                <tr class="item-row"><td>ময়লার বিল</td><td class="amt-col"><input type="number" class="fee" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="calc()" value="0" style="text-align: right;"></td></tr>
+                <tr class="item-row"><td>আগের বকেয়া</td><td class="amt-col"><input type="number" class="fee" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="calc()" value="0" style="text-align: right;"></td></tr>
+                <tr class="item-row"><td>হাওলাত</td><td class="amt-col"><input type="number" class="fee" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="calc()" value="0" style="text-align: right;"></td></tr>
+            </tbody>
+            <tfoot>
+                <tr class="item-row" style="background: #fffafa;">
+                    <td style="color: #d32f2f; font-weight: bold;">(-) জমা</td>
+                    <td class="amt-col"><input type="number" id="joma" class="minus" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="calc()" value="0" style="text-align: right; color: #d32f2f;"></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="total-box">
+            <span>মোট পাওনাঃ</span>
+            <h2 id="total-text">0 ৳</h2>
+        </div>
+        <div class="in-word-box" id="in-word-text">কথায়: শূন্য টাকা মাত্র</div>
     </div>
-    <div class="in-word-box" id="in-word-text">কথায়: শূন্য টাকা মাত্র</div>
 </div>
 
 <div class="modal" id="modal-elec">
     <div class="modal-card">
-        <h3 style="text-align:center; color:var(--main);">ইউনিট হিসাব</h3>
+        <h3>বিদ্যুৎ বিল</h3>
         <label>বর্তমান (V)</label><input type="number" id="curr" placeholder="0" oninput="liveCalc()">
         <label>পূর্বের (P)</label><input type="number" id="prev" placeholder="0" oninput="liveCalc()">
         <label>রেট (৳)</label><input type="number" id="rate" value="10" oninput="liveCalc()">
-        <div style="background:#f0f4ff; margin-top:15px; padding:10px; border-radius:5px; text-align:center; font-weight:bold;">
-            U: <span id="u-res">0</span> | বিল: <span id="b-res">0</span> ৳
+        <div style="background:#f0f4ff; padding:10px; border-radius:5px; text-align:center; font-weight:bold; border:1px dashed var(--main);">
+            ইউনিট: <span id="u-res">0</span> | বিল: <span id="b-res">0</span> ৳
         </div>
         <button class="btn-save" onclick="saveElec()">সেভ করুন</button>
         <p onclick="closeModal('modal-elec')" style="text-align:center; color:red; cursor:pointer; margin-top:10px; font-weight:bold;">বন্ধ করুন</p>
@@ -111,16 +145,16 @@
 
 <div class="modal" id="modal-names">
     <div class="modal-card">
-        <h3>বিবরণ সিলেক্ট করুন</h3>
-        <select id="name-selector" style="width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        <h3>সিলেক্ট করুন</h3>
+        <select id="name-selector">
             <option value="গ্যাস বিল">গ্যাস বিল</option>
             <option value="ফ্রিজ বিল">ফ্রিজ বিল</option>
             <option value="পানি বিল">পানি বিল</option>
             <option value="গ্যারেজ বিল">গ্যারেজ বিল</option>
             <option value="সার্ভিস চার্জ">সার্ভিস চার্জ</option>
-            <option value="অন্যান্য">অন্যান্য</option>
         </select>
         <button class="btn-save" onclick="applyName()">ওকে</button>
+        <p onclick="closeModal('modal-names')" style="text-align:center; color:red; cursor:pointer; margin-top:10px; font-weight:bold;">বন্ধ করুন</p>
     </div>
 </div>
 
@@ -148,11 +182,13 @@
         row.innerHTML = `
             <td>
                 <button class="del-btn capture-hide" onclick="this.parentElement.parentElement.remove(); calc();">×</button>
-                <input type="text" class="editable-label" value="নতুন আইটেম" ondblclick="openNameModal(this)" readonly>
+                <input type="text" class="editable-label" value="নতুন আইটেম" ondblclick="openNameModal(this)">
             </td>
             <td class="amt-col"><input type="number" class="fee" onfocus="clearZero(this)" onblur="resetZero(this)" oninput="calc()" value="0" style="text-align: right;"></td>
         `;
         table.appendChild(row);
+        const inp = row.querySelector('.editable-label');
+        inp.focus(); inp.select();
     }
 
     function openNameModal(input) { activeInput = input; document.getElementById('modal-names').style.display = 'flex'; }
@@ -198,7 +234,7 @@
             if (num < 100000) return conv(Math.floor(num/1000)) + " হাজার " + (num%1000!==0?conv(num%1000):"");
             return conv(Math.floor(num/100000)) + " লক্ষ " + (num%100000!==0?conv(num%100000):"");
         }
-        return conv(n);
+        return conv(Math.floor(n));
     }
 
     async function process(mode) {
@@ -219,9 +255,7 @@
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'a4');
             const imgData = canvas.toDataURL('image/png');
-            const imgWidth = 190;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+            pdf.addImage(imgData, 'PNG', 10, 10, 190, (canvas.height * 190) / canvas.width);
             pdf.save(fileName + ".pdf");
         } else if (mode === 'download') {
             const link = document.createElement('a');
