@@ -47,6 +47,7 @@
             position: absolute; left: 12px; bottom: 6px; pointer-events: none;
         }
 
+        /* ডিলিট বাটন স্টাইল */
         .del-btn {
             position: absolute; left: -25px; top: 50%; transform: translateY(-50%);
             color: red; border: none; background: none; cursor: pointer; font-weight: bold; font-size: 18px;
@@ -82,10 +83,10 @@
     </div>
 
     <div class="info-box">
-        <div><label>তারিখঃ</label> <input type="text" id="date-input" placeholder="১৫/০২/২০২৬"></div>
+        <div><label>তারিখঃ</label> <input type="text" placeholder="১৫/০২/২০২৬"></div>
         <div><label>বাড়িয়ালাঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
-        <div><label>রুম নংঃ</label> <input type="text" id="room-input" placeholder="যেমন: ১০২"></div>
-        <div><label>ভাড়াটিয়াঃ</label> <input type="text" id="tenant-input" placeholder="নাম লিখুন"></div>
+        <div><label>রুম নংঃ</label> <input type="text" placeholder="যেমন: ১০২ বা ৪/এ"></div>
+        <div><label>ভাড়াটিয়াঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
     </div>
 
     <button class="add-btn" id="add-item-btn" onclick="addNewRow()">+ নতুন আইটেম যোগ করুন</button>
@@ -132,12 +133,12 @@
 <div class="modal" id="modal">
     <div class="modal-card">
         <h3 style="text-align: center;">ইউনিট হিসাব</h3>
-        <label>বর্তমান (V)</label><input type="number" id="curr" oninput="modalCalc()">
-        <label>পূর্বের (P)</label><input type="number" id="prev" oninput="modalCalc()">
-        <label>রেট (৳)</label><input type="number" id="rate" value="10" oninput="modalCalc()">
-        <p style="font-weight: bold; text-align: center;">বিল: <span id="m_bill">0</span> ৳</p>
+        <label>বর্তমান রিডিং (V)</label><input type="number" id="curr" oninput="modalCalc()">
+        <label>পূর্বের রিডিং (P)</label><input type="number" id="prev" oninput="modalCalc()">
+        <label>ইউনিট রেট (৳)</label><input type="number" id="rate" value="10" oninput="modalCalc()">
+        <p style="font-weight: bold; text-align: center;">ইউনিট: <span id="u_count">0</span> | বিল: <span id="m_bill">0</span> ৳</p>
         <button class="btn-save" onclick="save()">সেভ করুন</button>
-        <p onclick="closeModal()" style="text-align:center; color:red; cursor:pointer;">বন্ধ</p>
+        <p onclick="closeModal()" style="text-align:center; color:red; cursor:pointer; margin-top:10px;">বন্ধ করুন</p>
     </div>
 </div>
 
@@ -151,29 +152,45 @@
         const table = document.getElementById('items-table');
         const row = document.createElement('tr');
         row.className = 'item-row';
-        row.innerHTML = `<td><button class="del-btn" onclick="this.parentElement.parentElement.remove(); calc();">×</button><input type="text" class="editable-label" placeholder="নাম লিখুন"></td><td class="amt-col"><input type="number" class="fee" oninput="calc()" value="0" style="text-align: right;"></td>`;
+        row.innerHTML = `
+            <td>
+                <button class="del-btn" onclick="this.parentElement.parentElement.remove(); calc();">×</button>
+                <input type="text" class="editable-label" placeholder="নাম লিখুন" onfocus="this.select()">
+            </td>
+            <td class="amt-col"><input type="number" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;"></td>
+        `;
         table.appendChild(row);
     }
 
     function openModal() { document.getElementById('modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
+    
     function modalCalc() {
         let c = parseFloat(document.getElementById('curr').value) || 0;
         let p = parseFloat(document.getElementById('prev').value) || 0;
         let r = parseFloat(document.getElementById('rate').value) || 0;
-        document.getElementById('m_bill').innerText = (c - p) > 0 ? (c - p) * r : 0;
+        let unit = c - p;
+        document.getElementById('u_count').innerText = unit > 0 ? unit : 0;
+        document.getElementById('m_bill').innerText = unit > 0 ? (unit * r) : 0;
     }
+
     function save() {
-        let v = document.getElementById('curr').value;
-        let p = document.getElementById('prev').value;
-        let bill = document.getElementById('m_bill').innerText;
-        document.getElementById('elec-val').value = bill;
-        document.getElementById('ebill-info').innerText = "V=" + v + " P=" + p;
+        let v = document.getElementById('curr').value || 0;
+        let p = document.getElementById('prev').value || 0;
+        let u = document.getElementById('u_count').innerText;
+        document.getElementById('elec-val').value = document.getElementById('m_bill').innerText;
+        document.getElementById('ebill-info').innerText = "V=" + v + " P=" + p + " U=" + u;
         closeModal(); calc();
     }
-    function checkType() { document.getElementById('ebill-info').innerText = ""; calc(); }
+
+    function checkType() {
+        document.getElementById('ebill-info').innerText = ""; 
+        calc();
+    }
+
     function calc() {
-        let total = 0; document.querySelectorAll('.fee').forEach(f => total += parseFloat(f.value) || 0);
+        let total = 0; 
+        document.querySelectorAll('.fee').forEach(f => total += parseFloat(f.value) || 0);
         let joma = parseFloat(document.getElementById('joma').value) || 0;
         document.getElementById('total-text').innerText = (total - joma) + " ৳";
     }
@@ -181,35 +198,37 @@
     function process(mode) {
         const area = document.getElementById('receipt');
         const rows = document.querySelectorAll('.item-row');
-        
-        // ফাইল নেম জেনারেশন লজিক
-        let tenantName = document.getElementById('tenant-input').value.trim() || "ভাড়াটিয়া";
-        let roomNo = document.getElementById('room-input').value.trim() || "রুম_নেই";
-        let fileName = tenantName + "_রুম_" + roomNo + ".png";
+        const calcLink = document.getElementById('calc-link');
+        const addBtn = document.getElementById('add-item-btn');
+        const delBtns = document.querySelectorAll('.del-btn');
 
-        document.getElementById('calc-link').classList.add('hide-text');
-        document.getElementById('add-item-btn').classList.add('hide-btn'); 
-        document.querySelectorAll('.del-btn').forEach(b => b.classList.add('del-btn-hide'));
+        calcLink.classList.add('hide-text');
+        addBtn.classList.add('hide-btn'); 
+        delBtns.forEach(b => b.classList.add('del-btn-hide'));
 
         rows.forEach(row => {
             let input = row.querySelector('.fee') || row.querySelector('.minus');
-            if (parseFloat(input.value) === 0) row.classList.add('hide-row');
+            let label = row.querySelector('.editable-label');
+            if (parseFloat(input.value) === 0 || input.value === "") {
+                row.classList.add('hide-row');
+            } else { 
+                row.classList.remove('hide-row'); 
+                input.setAttribute('value', input.value); 
+                if(label) label.setAttribute('value', label.value);
+            }
         });
 
         html2canvas(area, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
             rows.forEach(row => row.classList.remove('hide-row'));
-            document.getElementById('calc-link').classList.remove('hide-text');
-            document.getElementById('add-item-btn').classList.remove('hide-btn'); 
-            document.querySelectorAll('.del-btn').forEach(b => b.classList.remove('del-btn-hide'));
+            calcLink.classList.remove('hide-text');
+            addBtn.classList.remove('hide-btn'); 
+            delBtns.forEach(b => b.classList.remove('del-btn-hide'));
 
             if (mode === 'download') {
-                const a = document.createElement('a');
-                a.download = fileName; // এখানে নতুন নাম সেট করা হয়েছে
-                a.href = canvas.toDataURL();
-                a.click();
+                const a = document.createElement('a'); a.download = 'Receipt.png'; a.href = canvas.toDataURL(); a.click();
             } else {
                 canvas.toBlob(blob => {
-                    const file = new File([blob], fileName, { type: "image/png" });
+                    const file = new File([blob], "receipt.png", { type: "image/png" });
                     if (navigator.share) navigator.share({ files: [file] });
                 });
             }
