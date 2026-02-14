@@ -34,12 +34,19 @@
         th { background: var(--main); color: #fff; padding: 12px; font-size: 15px; text-align: left; }
         td { padding: 12px; border-bottom: 1.5px solid var(--border-color); font-size: 15px; color: #000; }
         
-        /* টাকার কলাম এবং ভেতর রিডিং দেখানোর স্টাইল */
-        .amt-col-wrapper { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
-        .amt-col { text-align: right; font-weight: bold; width: 130px; position: relative; }
+        /* টাকার কলাম এবং তথ্য দেখানোর স্টাইল */
+        .amt-col-wrapper { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+        .amt-col { text-align: right; font-weight: bold; width: 140px; }
         
-        /* ডানদিকের রিডিং টেক্সট */
-        .reading-text { font-size: 9px; color: #444; font-weight: bold; text-align: right; margin-top: 2px; }
+        /* বাম পাশের নীল রিডিং টেক্সট */
+        .reading-text { 
+            font-size: 12px; 
+            color: #0047ab; /* Deep Blue Color */
+            font-weight: 800; 
+            text-align: left; 
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
 
         /* পপ-আপ ডিজাইন */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
@@ -95,7 +102,7 @@
                 </td>
                 <td class="amt-col">
                     <div class="amt-col-wrapper">
-                        <input type="number" id="elec-val" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;">
+                        <input type="number" id="elec-val" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right; width: 100%;">
                         <div id="ebill-info" class="reading-text"></div>
                     </div>
                 </td>
@@ -150,7 +157,7 @@
         let p = document.getElementById('prev').value || 0;
         let u = document.getElementById('u_count').innerText;
         document.getElementById('elec-val').value = document.getElementById('m_bill').innerText;
-        // ডান কোণায় রিডিং পাঠানো
+        // বাম পাশে এবং বড় নীল অক্ষরে তথ্য দেখানো
         document.getElementById('ebill-info').innerText = "V=" + v + " P=" + p + " U=" + u;
         closeModal(); calc();
     }
