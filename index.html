@@ -35,16 +35,15 @@
         
         .amt-col { text-align: right; font-weight: bold; width: 150px; }
         
-        /* নীল লেখাটির পজিশন: বামে এবং একটু ওপরে */
         .reading-text { 
             font-size: 12px; 
             color: #0047ab; 
             font-weight: 800; 
             position: absolute;
-            left: 12px;   /* একদম বামে */
-            bottom: 6px;  /* একটু ওপরে */
+            left: 12px;   
+            bottom: 6px;  
             letter-spacing: 0.5px;
-            pointer-events: none; /* যাতে ইনপুটে ক্লিক করতে সমস্যা না হয় */
+            pointer-events: none;
         }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
@@ -65,6 +64,9 @@
         
         .hide-row, .hide-text { display: none !important; }
         #calc-link { color: blue; cursor: pointer; display: block; font-size: 10px; font-weight: bold; }
+        
+        /* শুধুমাত্র অন্যান্য বক্সটি এডিট করার স্টাইল */
+        .editable-label { font-weight: normal; color: #000; width: 100%; border: none; outline: none; }
     </style>
 </head>
 <body>
@@ -76,7 +78,7 @@
     </div>
 
     <div class="info-box">
-        <div><label>তারিখঃ</label> <input type="text" placeholder="১১/০২/২০২৬"></div>
+        <div><label>তারিখঃ</label> <input type="text" placeholder="১৪/০২/২০২৬"></div>
         <div><label>বাড়িয়ালাঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
         <div><label>ভাড়াটিয়াঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
     </div>
@@ -89,10 +91,7 @@
             </tr>
         </thead>
         <tbody id="items-table">
-            <tr class="item-row">
-                <td>মাসিক ভাড়া</td>
-                <td class="amt-col"><input type="number" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;"></td>
-            </tr>
+            <tr class="item-row"><td>মাসিক ভাড়া</td><td class="amt-col"><input type="number" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;"></td></tr>
             <tr class="item-row">
                 <td>
                     বিদ্যুৎ বিল 
@@ -100,16 +99,22 @@
                 </td>
                 <td class="amt-col">
                     <input type="number" id="elec-val" class="fee" 
-                           onfocus="manualInput()" 
+                           onfocus="if(this.value=='0')this.value=''"
+                           oninput="checkType()" 
                            onblur="if(this.value=='')this.value='0'" 
-                           oninput="calc()" value="0" style="text-align: right; width: 100%;">
+                           value="0" style="text-align: right; width: 100%;">
                     <div id="ebill-info" class="reading-text"></div>
                 </td>
             </tr>
             <tr class="item-row"><td>WIFI বিল</td><td class="amt-col"><input type="number" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;"></td></tr>
             <tr class="item-row"><td>বকেয়া ভাড়া</td><td class="amt-col"><input type="number" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;"></td></tr>
             <tr class="item-row"><td>হাওলাত</td><td class="amt-col"><input type="number" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;"></td></tr>
-            <tr class="item-row"><td>অন্যান্য</td><td class="amt-col"><input type="number" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;"></td></tr>
+            
+            <tr class="item-row">
+                <td><input type="text" class="editable-label" value="অন্যান্য" onfocus="this.select()"></td>
+                <td class="amt-col"><input type="number" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;"></td>
+            </tr>
+
             <tr class="item-row" style="background: #fff5f5;">
                 <td style="color: #d32f2f; font-weight: bold;">(-) জমা</td>
                 <td class="amt-col"><input type="number" id="joma" class="minus" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right; color: #d32f2f;"></td>
@@ -141,6 +146,8 @@
 </div>
 
 <script>
+    let isAutoCalculated = false; // ক্যালকুলেটর থেকে মান এলে এটি true হবে
+
     function openModal() { document.getElementById('modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
     
@@ -158,16 +165,16 @@
         let p = document.getElementById('prev').value || 0;
         let u = document.getElementById('u_count').innerText;
         document.getElementById('elec-val').value = document.getElementById('m_bill').innerText;
-        // নীল লেখা সেট করা
         document.getElementById('ebill-info').innerText = "V=" + v + " P=" + p + " U=" + u;
+        isAutoCalculated = true; // অটো ক্যালকুলেশন সফল
         closeModal(); calc();
     }
 
-    // সরাসরি টাকার ঘরে লিখলে নীল লেখা মুছে যাবে
-    function manualInput() {
-        let input = document.getElementById('elec-val');
-        if(input.value == '0') input.value = '';
+    function checkType() {
+        // যদি হাত দিয়ে কোনো সংখ্যা টাইপ করা হয়, তবেই নীল লেখা মুছে যাবে
         document.getElementById('ebill-info').innerText = ""; 
+        isAutoCalculated = false;
+        calc();
     }
 
     function calc() {
@@ -181,11 +188,18 @@
         const rows = document.querySelectorAll('.item-row');
         const calcLink = document.getElementById('calc-link');
         calcLink.classList.add('hide-text');
+        
         rows.forEach(row => {
-            let input = row.querySelector('input');
+            let input = row.querySelector('.fee');
             if (parseFloat(input.value) === 0 || input.value === "") row.classList.add('hide-row');
-            else { row.classList.remove('hide-row'); input.setAttribute('value', input.value); }
+            else { 
+                row.classList.remove('hide-row'); 
+                input.setAttribute('value', input.value); 
+                let label = row.querySelector('.editable-label');
+                if(label) label.setAttribute('value', label.value);
+            }
         });
+
         html2canvas(area, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
             rows.forEach(row => row.classList.remove('hide-row'));
             calcLink.classList.remove('hide-text');
