@@ -33,7 +33,7 @@
         table { width: 100%; border-collapse: collapse; border: 2px solid var(--main); }
         th { background: var(--main); color: #fff; padding: 12px; font-size: 15px; text-align: left; }
         td { padding: 12px; border-bottom: 1.5px solid var(--border-color); font-size: 15px; color: #000; }
-        .amt-col { text-align: right; font-weight: bold; width: 100px; }
+        .amt-col { text-align: right; font-weight: bold; width: 120px; }
 
         /* পপ-আপ ডিজাইন */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
@@ -54,6 +54,9 @@
         
         .hide-row, .hide-text { display: none !important; }
         #calc-link { color: blue; cursor: pointer; display: block; font-size: 10px; font-weight: bold; }
+        
+        /* বিদ্যুৎ বিলের স্পেশাল টেক্সট স্টাইল */
+        .ebill-detail { font-size: 10px; color: #555; display: block; margin-top: 2px; font-weight: normal; }
     </style>
 </head>
 <body>
@@ -86,6 +89,7 @@
                 <td>
                     বিদ্যুৎ বিল 
                     <small id="calc-link" onclick="openModal()">(ক্যালকুলেটর)</small>
+                    <span id="ebill-info" class="ebill-detail"></span>
                 </td>
                 <td class="amt-col"><input type="number" id="elec-val" class="fee" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="calc()" value="0" style="text-align: right;"></td>
             </tr>
@@ -109,10 +113,10 @@
 <div class="modal" id="modal">
     <div class="modal-card">
         <h3 style="text-align: center;">ইউনিট হিসাব</h3>
-        <label>বর্তমান রিডিং</label><input type="number" id="curr" oninput="modalCalc()">
-        <label>পূর্বের রিডিং</label><input type="number" id="prev" oninput="modalCalc()">
+        <label>বর্তমান রিডিং (V)</label><input type="number" id="curr" oninput="modalCalc()">
+        <label>পূর্বের রিডিং (P)</label><input type="number" id="prev" oninput="modalCalc()">
         <label>ইউনিট রেট (৳)</label><input type="number" id="rate" value="10" oninput="modalCalc()">
-        <p style="font-weight: bold; text-align: center;">মোট বিল: <span id="m_bill">0</span> ৳</p>
+        <p style="font-weight: bold; text-align: center;">ইউনিট: <span id="u_count">0</span> | বিল: <span id="m_bill">0</span> ৳</p>
         <button class="btn-save" onclick="save()">সেভ করুন</button>
         <p onclick="closeModal()" style="text-align:center; color:red; cursor:pointer; margin-top:10px;">বন্ধ করুন</p>
     </div>
@@ -126,27 +130,46 @@
 <script>
     function openModal() { document.getElementById('modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
+    
     function modalCalc() {
         let c = parseFloat(document.getElementById('curr').value) || 0;
         let p = parseFloat(document.getElementById('prev').value) || 0;
         let r = parseFloat(document.getElementById('rate').value) || 0;
-        document.getElementById('m_bill').innerText = (c - p) * r;
+        let unit = c - p;
+        document.getElementById('u_count').innerText = unit > 0 ? unit : 0;
+        document.getElementById('m_bill').innerText = unit > 0 ? (unit * r) : 0;
     }
+
     function save() {
-        document.getElementById('elec-val').value = document.getElementById('m_bill').innerText;
+        let v = document.getElementById('curr').value || 0;
+        let p = document.getElementById('prev').value || 0;
+        let u = document.getElementById('u_count').innerText;
+        let bill = document.getElementById('m_bill').innerText;
+        
+        document.getElementById('elec-val').value = bill;
+        document.getElementById('ebill-info').innerText = "V=" + v + ", P=" + p + ", Unit=" + u;
+        
         closeModal(); calc();
     }
+
     function calc() {
-        let total = 0; document.querySelectorAll('.fee').forEach(f => total += parseFloat(f.value) || 0);
+        let total = 0; 
+        document.querySelectorAll('.fee').forEach(f => total += parseFloat(f.value) || 0);
         let joma = parseFloat(document.getElementById('joma').value) || 0;
         document.getElementById('total-text').innerText = (total - joma) + " ৳";
+        
+        // যদি বিদ্যুৎ বিলের মান ম্যানুয়ালি ০ করা হয়, তবে টেক্সট মুছে যাবে
+        if(parseFloat(document.getElementById('elec-val').value) == 0) {
+            document.getElementById('ebill-info').innerText = "";
+        }
     }
+
     function process(mode) {
         const area = document.getElementById('receipt');
         const rows = document.querySelectorAll('.item-row');
         const calcLink = document.getElementById('calc-link');
 
-        calcLink.classList.add('hide-text'); // ছবির জন্য ক্যালকুলেটর টেক্সট হাইড করা
+        calcLink.classList.add('hide-text');
 
         rows.forEach(row => {
             let input = row.querySelector('input');
@@ -156,7 +179,7 @@
 
         html2canvas(area, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
             rows.forEach(row => row.classList.remove('hide-row'));
-            calcLink.classList.remove('hide-text'); // ছবির পর আবার ফিরিয়ে আনা
+            calcLink.classList.remove('hide-text');
 
             if (mode === 'download') {
                 const a = document.createElement('a'); a.download = 'Receipt.png'; a.href = canvas.toDataURL(); a.click();
@@ -170,4 +193,5 @@
     }
 </script>
 </body>
-</html>
+    </html>
+    
