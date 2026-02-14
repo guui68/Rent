@@ -47,7 +47,6 @@
             position: absolute; left: 12px; bottom: 6px; pointer-events: none;
         }
 
-        /* ডিলিট বাটন স্টাইল */
         .del-btn {
             position: absolute; left: -25px; top: 50%; transform: translateY(-50%);
             color: red; border: none; background: none; cursor: pointer; font-weight: bold; font-size: 18px;
@@ -85,8 +84,8 @@
     <div class="info-box">
         <div><label>তারিখঃ</label> <input type="text" placeholder="১৫/০২/২০২৬"></div>
         <div><label>বাড়িয়ালাঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
-        <div><label>রুম নংঃ</label> <input type="text" placeholder="যেমন: ১০২ বা ৪/এ"></div>
-        <div><label>ভাড়াটিয়াঃ</label> <input type="text" placeholder="নাম লিখুন"></div>
+        <div><label>রুম নংঃ</label> <input type="text" id="room-input" placeholder="যেমন: ১০২"></div>
+        <div><label>ভাড়াটিয়াঃ</label> <input type="text" id="tenant-input" placeholder="নাম লিখুন"></div>
     </div>
 
     <button class="add-btn" id="add-item-btn" onclick="addNewRow()">+ নতুন আইটেম যোগ করুন</button>
@@ -133,10 +132,9 @@
 <div class="modal" id="modal">
     <div class="modal-card">
         <h3 style="text-align: center;">ইউনিট হিসাব</h3>
-        <label>বর্তমান রিডিং (V)</label><input type="number" id="curr" oninput="modalCalc()">
-        <label>পূর্বের রিডিং (P)</label><input type="number" id="prev" oninput="modalCalc()">
-        <label>ইউনিট রেট (৳)</label><input type="number" id="rate" value="10" oninput="modalCalc()">
-        <p style="font-weight: bold; text-align: center;">ইউনিট: <span id="u_count">0</span> | বিল: <span id="m_bill">0</span> ৳</p>
+        <label>বর্তমান (V)</label><input type="number" id="curr" oninput="modalCalc()">
+        <label>পূর্বের (P)</label><input type="number" id="prev" oninput="modalCalc()">
+        <label>রেট (৳)</label><input type="number" id="rate" value="10" oninput="modalCalc()">
         <button class="btn-save" onclick="save()">সেভ করুন</button>
         <p onclick="closeModal()" style="text-align:center; color:red; cursor:pointer; margin-top:10px;">বন্ধ করুন</p>
     </div>
@@ -170,16 +168,13 @@
         let p = parseFloat(document.getElementById('prev').value) || 0;
         let r = parseFloat(document.getElementById('rate').value) || 0;
         let unit = c - p;
-        document.getElementById('u_count').innerText = unit > 0 ? unit : 0;
-        document.getElementById('m_bill').innerText = unit > 0 ? (unit * r) : 0;
+        return { unit: unit > 0 ? unit : 0, bill: unit > 0 ? (unit * r) : 0 };
     }
 
     function save() {
-        let v = document.getElementById('curr').value || 0;
-        let p = document.getElementById('prev').value || 0;
-        let u = document.getElementById('u_count').innerText;
-        document.getElementById('elec-val').value = document.getElementById('m_bill').innerText;
-        document.getElementById('ebill-info').innerText = "V=" + v + " P=" + p + " U=" + u;
+        let res = modalCalc();
+        document.getElementById('elec-val').value = res.bill;
+        document.getElementById('ebill-info').innerText = "V=" + document.getElementById('curr').value + " P=" + document.getElementById('prev').value + " U=" + res.unit;
         closeModal(); calc();
     }
 
@@ -201,6 +196,11 @@
         const calcLink = document.getElementById('calc-link');
         const addBtn = document.getElementById('add-item-btn');
         const delBtns = document.querySelectorAll('.del-btn');
+        
+        // ভাড়াটিয়ার নাম এবং রুম নং নিয়ে ফাইলের নাম তৈরি
+        const tenantName = document.getElementById('tenant-input').value || "ভাড়াটিয়া";
+        const roomNo = document.getElementById('room-input').value || "রুম";
+        const fileName = tenantName + "_" + roomNo + ".png";
 
         calcLink.classList.add('hide-text');
         addBtn.classList.add('hide-btn'); 
@@ -209,11 +209,11 @@
         rows.forEach(row => {
             let input = row.querySelector('.fee') || row.querySelector('.minus');
             let label = row.querySelector('.editable-label');
-            if (parseFloat(input.value) === 0 || input.value === "") {
+            if (input && (parseFloat(input.value) === 0 || input.value === "")) {
                 row.classList.add('hide-row');
             } else { 
                 row.classList.remove('hide-row'); 
-                input.setAttribute('value', input.value); 
+                if(input) input.setAttribute('value', input.value); 
                 if(label) label.setAttribute('value', label.value);
             }
         });
@@ -225,10 +225,13 @@
             delBtns.forEach(b => b.classList.remove('del-btn-hide'));
 
             if (mode === 'download') {
-                const a = document.createElement('a'); a.download = 'Receipt.png'; a.href = canvas.toDataURL(); a.click();
+                const a = document.createElement('a'); 
+                a.download = fileName; // এখানে নাম সেট করা হয়েছে
+                a.href = canvas.toDataURL(); 
+                a.click();
             } else {
                 canvas.toBlob(blob => {
-                    const file = new File([blob], "receipt.png", { type: "image/png" });
+                    const file = new File([blob], fileName, { type: "image/png" });
                     if (navigator.share) navigator.share({ files: [file] });
                 });
             }
